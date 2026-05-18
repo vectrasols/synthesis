@@ -1,5 +1,5 @@
 """
-ml_service.py — All ML model training and algorithm demos.
+ml_service.py — ML model training and user-dataset algorithms.
 Ported from main.py with all sklearn/scipy logic preserved.
 Returns structured results (metrics + optional Plotly chart JSON).
 """
@@ -453,45 +453,246 @@ def train_model(
 # ─── Algorithms Lab ─────────────────────────────────────────────────────────────
 
 def run_algorithm(name: str) -> Dict[str, Any]:
-    """Returns {'output': str, 'chart': plotly_json_or_None}"""
+    """Returns {'output': str, 'chart': plotly_json_or_None}.
+
+    The Algorithms tab is intentionally limited to the currently loaded user
+    dataset. Older canned/demo algorithms are not exposed here.
+    """
+    if store.df_cleaned is None:
+        raise ValueError("Load or enter a dataset before running algorithms.")
+
     funcs = {
-        "ml_taxonomy":          _run_ml_taxonomy,
-        "alpha_beta":           _run_alpha_beta,
-        "astar":                _run_astar,
-        "bfs_dfs":              _run_bfs_dfs,
-        "decision_tree_demo":   _run_decision_tree_demo,
-        "naive_bayes_demo":     _run_naive_bayes_demo,
-        "ensemble_methods_demo": _run_ensemble_methods_demo,
-        "genetic_algorithm":    _run_genetic_algorithm,
-        "hill_climbing":        _run_hill_climbing,
-        "kfold":                _run_kfold,
-        "kmeans_demo":          _run_kmeans_demo,
-        "dbscan_demo":          _run_dbscan_demo,
-        "pca_demo":             _run_pca_demo,
-        "ica_demo":             _run_ica_demo,
-        "apriori_demo":         _run_apriori_demo,
-        "fpgrowth_demo":        _run_fpgrowth_demo,
-        "zscore_anomaly_demo":  _run_zscore_anomaly_demo,
-        "isolation_forest_demo": _run_isolation_forest_demo,
-        "one_class_svm_demo":   _run_one_class_svm_demo,
-        "self_training_demo":   _run_self_training_demo,
-        "co_training_demo":     _run_co_training_demo,
-        "q_learning_demo":      _run_q_learning_demo,
-        "policy_optimization_demo": _run_policy_optimization_demo,
-        "dynamic_programming_demo": _run_dynamic_programming_demo,
-        "time_series_demo":     _run_time_series_demo,
-        "logistic_iris":        _run_logistic_iris,
-        "logistic_breast":      _run_logistic_breast,
-        "logistic_digits":      _run_logistic_digits,
-        "onehot":               _run_onehot,
-        "svm_demo":             _run_svm_demo,
+        "dataset_profile":     _run_user_dataset_profile,
+        "correlation_matrix":  _run_user_correlation_matrix,
+        "pca_user":            _run_user_pca,
+        "kmeans_user":         _run_user_kmeans,
+        "dbscan_user":         _run_user_dbscan,
+        "zscore_user":         _run_user_zscore,
+        "isolation_user":      _run_user_isolation_forest,
     }
     if name not in funcs:
-        raise ValueError(f"Unknown algorithm: {name}")
+        raise ValueError("This algorithm is not available because Synthesis only runs algorithms on your loaded dataset.")
     return funcs[name]()
 
 
-# ─── Individual algorithm implementations ────────────────────────────────────
+# ─── User dataset algorithms ──────────────────────────────────────────────────
+
+def _user_df() -> pd.DataFrame:
+    if store.df_cleaned is None:
+        raise ValueError("Load or enter a dataset before running algorithms.")
+    return store.df_cleaned.copy()
+
+
+def _user_source() -> str:
+    return store.source_name or "Current dataset"
+
+
+def _user_numeric_frame(min_cols: int = 1, min_rows: int = 2) -> pd.DataFrame:
+    df = _user_df()
+    X = _numeric_features(df, None)
+    X = X.loc[:, X.nunique(dropna=False) > 1]
+    if len(X) < min_rows:
+        raise ValueError(f"This algorithm needs at least {min_rows} rows.")
+    if X.shape[1] < min_cols:
+        raise ValueError(f"This algorithm needs at least {min_cols} numeric columns. Use Prepare to convert columns if needed.")
+    return X
+
+
+def _scaled_numeric_frame(min_cols: int = 1, min_rows: int = 2):
+    X = _user_numeric_frame(min_cols=min_cols, min_rows=min_rows)
+    return X, StandardScaler().fit_transform(X)
+
+
+def _projection_from_scaled(X_scaled: np.ndarray) -> pd.DataFrame:
+    if X_scaled.shape[1] >= 2:
+        points = PCA(n_components=2, random_state=42).fit_transform(X_scaled)
+        return pd.DataFrame({"Axis 1": points[:, 0], "Axis 2": points[:, 1]})
+    return pd.DataFrame({"Axis 1": X_scaled[:, 0], "Axis 2": np.zeros(len(X_scaled))})
+
+
+def _style_user_fig(fig, title: Optional[str] = None):
+    if title:
+        fig.update_layout(title=title)
+    fig.update_layout(
+        paper_bgcolor="#12151f",
+        plot_bgcolor="#12151f",
+        font=dict(color="#f2f5fb"),
+        margin=dict(l=40, r=24, t=54, b=40),
+    )
+    return fig
+
+
+def _run_user_dataset_profile() -> Dict[str, Any]:
+    df = _user_df()
+    dtype_counts = df.dtypes.astype(str).value_counts().sort_index()
+    missing = df.isna().sum().sort_values(ascending=False)
+    missing = missing[missing > 0].head(20)
+
+    lines = [
+        "Dataset Profile",
+        f"Source: {_user_source()}",
+        f"Rows: {len(df):,}",
+        f"Columns: {len(df.columns):,}",
+        "",
+        "Column types:",
+        *[f"- {dtype}: {count}" for dtype, count in dtype_counts.items()],
+    ]
+    if len(missing):
+        lines.extend(["", "Top missing-value columns:", *[f"- {col}: {int(count):,}" for col, count in missing.items()]])
+    else:
+        lines.extend(["", "Missing values: none detected"])
+
+    chart_data = missing.reset_index()
+    if len(chart_data):
+        chart_data.columns = ["Column", "Missing Values"]
+        fig = px.bar(chart_data, x="Column", y="Missing Values", title="Missing Values by Column")
+    else:
+        chart_data = dtype_counts.reset_index()
+        chart_data.columns = ["Type", "Columns"]
+        fig = px.bar(chart_data, x="Type", y="Columns", title="Column Types")
+    _style_user_fig(fig)
+    return {"output": "\n".join(lines), "chart": _fig_json(fig)}
+
+
+def _run_user_correlation_matrix() -> Dict[str, Any]:
+    X = _user_numeric_frame(min_cols=2, min_rows=2)
+    corr = X.corr(numeric_only=True).fillna(0)
+    fig = go.Figure(go.Heatmap(
+        z=corr.values,
+        x=corr.columns,
+        y=corr.index,
+        colorscale="RdBu",
+        zmin=-1,
+        zmax=1,
+        colorbar=dict(title="r"),
+    ))
+    _style_user_fig(fig, "Correlation Matrix")
+    strongest = corr.where(~np.eye(len(corr), dtype=bool)).abs().stack().sort_values(ascending=False)
+    top = strongest.head(5)
+    lines = [
+        "Correlation Matrix",
+        f"Source: {_user_source()}",
+        f"Numeric columns: {X.shape[1]}",
+        "",
+        "Strongest relationships:",
+        *[f"- {a} vs {b}: {corr.loc[a, b]:.4f}" for (a, b), _ in top.items()],
+    ]
+    return {"output": "\n".join(lines), "chart": _fig_json(fig)}
+
+
+def _run_user_pca() -> Dict[str, Any]:
+    X, X_scaled = _scaled_numeric_frame(min_cols=2, min_rows=2)
+    pca = PCA(n_components=2, random_state=42)
+    points = pca.fit_transform(X_scaled)
+    plot_df = pd.DataFrame({"PC1": points[:, 0], "PC2": points[:, 1]})
+    fig = px.scatter(plot_df, x="PC1", y="PC2", title="PCA Projection")
+    _style_user_fig(fig)
+    explained = pca.explained_variance_ratio_
+    output = "\n".join([
+        "PCA Projection",
+        f"Source: {_user_source()}",
+        f"Rows analyzed: {len(X):,}",
+        f"Numeric columns: {X.shape[1]}",
+        f"Explained variance: {explained.sum():.4f}",
+        f"PC1: {explained[0]:.4f}",
+        f"PC2: {explained[1]:.4f}",
+    ])
+    return {"output": output, "chart": _fig_json(fig)}
+
+
+def _run_user_kmeans() -> Dict[str, Any]:
+    X, X_scaled = _scaled_numeric_frame(min_cols=1, min_rows=2)
+    clusters = min(3, len(X_scaled))
+    if clusters < 2:
+        raise ValueError("K-Means needs at least two rows.")
+    model = KMeans(n_clusters=clusters, n_init=10, random_state=42)
+    labels = model.fit_predict(X_scaled)
+    points = _projection_from_scaled(X_scaled)
+    points["Cluster"] = labels.astype(str)
+    fig = px.scatter(points, x="Axis 1", y="Axis 2", color="Cluster", title="K-Means Clustering")
+    _style_user_fig(fig)
+    metrics = [
+        "K-Means Clustering",
+        f"Source: {_user_source()}",
+        f"Rows analyzed: {len(X):,}",
+        f"Numeric columns: {X.shape[1]}",
+        f"Clusters: {clusters}",
+        f"Inertia: {model.inertia_:.4f}",
+    ]
+    if 1 < len(set(labels)) < len(labels):
+        metrics.append(f"Silhouette score: {silhouette_score(X_scaled, labels):.4f}")
+    return {"output": "\n".join(metrics), "chart": _fig_json(fig)}
+
+
+def _run_user_dbscan() -> Dict[str, Any]:
+    X, X_scaled = _scaled_numeric_frame(min_cols=1, min_rows=3)
+    min_samples = max(2, min(8, len(X_scaled) // 10 or 2))
+    model = DBSCAN(eps=0.8, min_samples=min_samples)
+    labels = model.fit_predict(X_scaled)
+    cluster_ids = {int(v) for v in labels if v != -1}
+    points = _projection_from_scaled(X_scaled)
+    points["Cluster"] = ["Noise" if label == -1 else f"Cluster {label}" for label in labels]
+    fig = px.scatter(points, x="Axis 1", y="Axis 2", color="Cluster", title="DBSCAN Clustering")
+    _style_user_fig(fig)
+    lines = [
+        "DBSCAN Clustering",
+        f"Source: {_user_source()}",
+        f"Rows analyzed: {len(X):,}",
+        f"Numeric columns: {X.shape[1]}",
+        f"Clusters: {len(cluster_ids)}",
+        f"Noise points: {int(np.sum(labels == -1)):,}",
+        f"Minimum samples: {min_samples}",
+    ]
+    if 1 < len(set(labels)) < len(labels):
+        lines.append(f"Silhouette score: {silhouette_score(X_scaled, labels):.4f}")
+    return {"output": "\n".join(lines), "chart": _fig_json(fig)}
+
+
+def _run_user_zscore() -> Dict[str, Any]:
+    X, X_scaled = _scaled_numeric_frame(min_cols=1, min_rows=2)
+    z = np.abs(X_scaled)
+    mask = (z > 3).any(axis=1)
+    max_z = z.max(axis=1)
+    points = _projection_from_scaled(X_scaled)
+    points["Status"] = np.where(mask, "Anomaly", "Normal")
+    points["Max Z"] = max_z
+    fig = px.scatter(points, x="Axis 1", y="Axis 2", color="Status", size="Max Z", title="Z-Score Anomaly Scan")
+    _style_user_fig(fig)
+    output = "\n".join([
+        "Z-Score Anomaly Scan",
+        f"Source: {_user_source()}",
+        f"Rows analyzed: {len(X):,}",
+        f"Numeric columns: {X.shape[1]}",
+        f"Threshold: 3.0",
+        f"Anomalies: {int(mask.sum()):,}",
+        f"Anomaly rate: {float(mask.mean()):.4f}",
+    ])
+    return {"output": output, "chart": _fig_json(fig)}
+
+
+def _run_user_isolation_forest() -> Dict[str, Any]:
+    X, X_scaled = _scaled_numeric_frame(min_cols=1, min_rows=4)
+    contamination = min(0.2, max(1 / len(X_scaled), 0.08))
+    model = IsolationForest(contamination=contamination, random_state=42)
+    labels = model.fit_predict(X_scaled)
+    anomaly_mask = labels == -1
+    points = _projection_from_scaled(X_scaled)
+    points["Status"] = np.where(anomaly_mask, "Anomaly", "Normal")
+    fig = px.scatter(points, x="Axis 1", y="Axis 2", color="Status", title="Isolation Forest Anomaly Scan")
+    _style_user_fig(fig)
+    output = "\n".join([
+        "Isolation Forest Anomaly Scan",
+        f"Source: {_user_source()}",
+        f"Rows analyzed: {len(X):,}",
+        f"Numeric columns: {X.shape[1]}",
+        f"Contamination: {contamination:.4f}",
+        f"Anomalies: {int(anomaly_mask.sum()):,}",
+        f"Anomaly rate: {float(anomaly_mask.mean()):.4f}",
+    ])
+    return {"output": output, "chart": _fig_json(fig)}
+
+
+# ─── Legacy algorithm implementations, no longer exposed in the app ──────────
 
 def _run_alpha_beta() -> Dict[str, Any]:
     scores = [2, 3, 5, 9, 0, 1, 7, 5]

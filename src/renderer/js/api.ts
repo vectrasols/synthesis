@@ -42,7 +42,6 @@ const API = (() => {
     },
     loadUrl: (url, fmt = 'auto') => request('POST', '/api/data/load-url', { url, fmt }),
     loadText: (text, source_name = 'Clipboard Data') => request('POST', '/api/data/load-text', { text, source_name }),
-    loadSample: (choice) => request('POST', '/api/data/load-sample', { choice }),
     getInfo: () => request('GET', '/api/data/info'),
     getPreview: (n = 20, cleaned = false) => request('GET', `/api/data/preview?n=${n}&cleaned=${cleaned}`),
     getColumnValues: (col) => request('GET', `/api/data/column-values?col=${encodeURIComponent(col)}`),
@@ -57,6 +56,8 @@ const API = (() => {
     // Cleaning
     applyCleaning: (params) => request('POST', '/api/clean/apply', params),
     removeDuplicates: () => request('POST', '/api/clean/remove-duplicates'),
+    getCleaningHistory: () => request('GET', '/api/clean/history'),
+    rollbackCleaning: (step_index) => request('POST', '/api/clean/rollback', { step_index }),
     getExportCleanUrl: () => base() + '/api/clean/export',
 
     // Model training

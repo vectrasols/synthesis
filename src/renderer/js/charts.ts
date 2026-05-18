@@ -28,7 +28,7 @@ const Charts = (() => {
     if (el) {
       Plotly.purge(el);
       el.innerHTML = divId === 'algoChartDiv'
-        ? '<div class="chart-placeholder"><div class="placeholder-icon">📈</div><p>Algorithm visualization will appear here</p></div>'
+        ? '<div class="chart-placeholder"><div class="placeholder-icon">Plot</div><p>Algorithm visualization will appear here</p></div>'
         : '';
     }
     const ph = el?.previousElementSibling;
@@ -45,11 +45,11 @@ const Charts = (() => {
     const opacity = (parseInt(document.getElementById('chartOpacity')?.value) || 70) / 100;
     const useHue = document.getElementById('useHue')?.checked || false;
     const showStats = document.getElementById('showStats')?.checked || false;
+    const showGrid = document.getElementById('showGrid')?.checked ?? true;
 
     try {
-      const res = await API.getChart({ chart_type: chartType, x_col: xCol || null, y_col: yCol || null, z_col: zCol || null, title, bins, opacity, use_hue: useHue, show_annotations: showStats });
-      const json = typeof res === 'string' ? res : await res.text();
-      render('chartDiv', json);
+      const res = await API.getChart({ chart_type: chartType, x_col: xCol || null, y_col: yCol || null, z_col: zCol || null, title, bins, opacity, use_hue: useHue, show_annotations: showStats, show_grid: showGrid });
+      render('chartDiv', res);
     } catch (e) {
       Utils.setStatus(`Chart error: ${e.message}`, true);
     }

@@ -1,4 +1,5 @@
 interface DataInfo {
+  loaded?: boolean;
   source: string;
   rows: number;
   cols: number;
@@ -37,6 +38,8 @@ interface Element {
   data?: unknown;
   style?: CSSStyleDeclaration;
   dataset?: DOMStringMap;
+  options: HTMLOptionsCollection;
+  selectedOptions: HTMLCollectionOf<HTMLOptionElement>;
 }
 
 interface EventTarget {

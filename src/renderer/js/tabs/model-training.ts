@@ -80,19 +80,19 @@ const ModelTab = (() => {
     Utils.showSpinner('Training model…');
     Utils.setStatus(`Training ${params.model_type}…`);
     const btn = document.getElementById('trainModelBtn');
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Training…'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Training…'; }
 
     try {
       const res = await API.trainModel(params);
       renderResults(res);
-      Utils.setStatus(`✅ ${res.model} trained successfully`);
+      Utils.setStatus(`${res.model} trained successfully`);
       Utils.toast('Model trained!', 'success');
     } catch (e) {
       Utils.toast(`Training error: ${e.message}`, 'error');
       Utils.setStatus(`Error: ${e.message}`, true);
     } finally {
       Utils.hideSpinner();
-      if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-icon">🎯</span> Train Model'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Train Model'; }
     }
   }
 
@@ -110,7 +110,7 @@ const ModelTab = (() => {
       : `Rows analyzed: ${res.train_samples}`;
 
     el.innerHTML = `
-      <div class="model-header">🤖 ${res.model.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
+      <div class="model-header">${res.model.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
       <div class="model-meta">${sampleMeta}</div>
       <div class="metrics-grid">${metricsHtml}</div>
       ${res.report ? `<div style="margin-top:16px;font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">Classification Report</div><div class="report-block">${res.report}</div>` : ''}

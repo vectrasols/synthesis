@@ -147,10 +147,10 @@ function waitForServer(port, timeoutMs) {
 // ─── Create Window ────────────────────────────────────────────────────────────
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 880,
-    minWidth: 960,
-    minHeight: 600,
+    width: 1500,
+    height: 920,
+    minWidth: 1120,
+    minHeight: 720,
     backgroundColor: '#1e1e23',
     show: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
@@ -255,6 +255,7 @@ function registerIpcHandlers() {
 // ─── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
   registerIpcHandlers();
+  Menu.setApplicationMenu(null);
 
   try {
     await startPythonBackend();

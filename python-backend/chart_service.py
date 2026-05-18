@@ -55,19 +55,35 @@ def _get_colors(theme: str):
     return COLOR_SEQUENCES.get(theme, px.colors.qualitative.Plotly)
 
 
-def _make_layout(title: str, theme: str, x_label: str = "", y_label: str = "") -> dict:
+def _make_layout(title: str, theme: str, x_label: str = "", y_label: str = "", show_grid: bool = True) -> dict:
     c = THEME_COLORS.get(theme, THEME_COLORS["dark"])
     return dict(
         title=dict(text=title, font=dict(size=18, color=c["text"])),
         paper_bgcolor=c["paper"],
         plot_bgcolor=c["bg"],
         font=dict(color=c["text"], family="Inter, Outfit, sans-serif"),
-        xaxis=dict(title=x_label, gridcolor="rgba(128,128,128,0.15)", zeroline=False),
-        yaxis=dict(title=y_label, gridcolor="rgba(128,128,128,0.15)", zeroline=False),
+        xaxis=dict(title=x_label, gridcolor="rgba(128,128,128,0.15)", showgrid=show_grid, zeroline=show_grid, tickfont=dict(size=13), automargin=True),
+        yaxis=dict(title=y_label, gridcolor="rgba(128,128,128,0.15)", showgrid=show_grid, zeroline=show_grid, tickfont=dict(size=12), automargin=True),
         margin=dict(l=50, r=30, t=60, b=50),
         showlegend=True,
         legend=dict(bgcolor="rgba(0,0,0,0.3)", bordercolor="rgba(255,255,255,0.1)", borderwidth=1),
     )
+
+
+def _apply_axis_preferences(fig, show_grid: bool):
+    fig.update_xaxes(showgrid=show_grid, zeroline=show_grid, tickfont=dict(size=13), automargin=True)
+    fig.update_yaxes(showgrid=show_grid, zeroline=show_grid, tickfont=dict(size=12), automargin=True)
+    try:
+        fig.update_scenes(
+            xaxis_showgrid=show_grid,
+            yaxis_showgrid=show_grid,
+            zaxis_showgrid=show_grid,
+            xaxis_tickfont=dict(size=12),
+            yaxis_tickfont=dict(size=12),
+            zaxis_tickfont=dict(size=12),
+        )
+    except Exception:
+        pass
 
 
 def generate_chart(
@@ -80,6 +96,7 @@ def generate_chart(
     opacity: float,
     use_hue: bool,
     show_annotations: bool,
+    show_grid: bool,
     theme: str,
 ) -> str:
     """Returns Plotly figure as JSON string."""
@@ -90,7 +107,7 @@ def generate_chart(
         return json.dumps(fig, cls=PlotlyJSONEncoder)
 
     colors = _get_colors(theme)
-    layout = _make_layout(title, theme, x_col or "", y_col or "")
+    layout = _make_layout(title, theme, x_col or "", y_col or "", show_grid)
     fig = None
 
     try:
@@ -253,6 +270,7 @@ def generate_chart(
         font=dict(color=c["text"], family="Inter, Outfit, sans-serif"),
         margin=dict(l=50, r=30, t=60, b=50),
     )
+    _apply_axis_preferences(fig, show_grid)
 
     # Statistical annotations
     if show_annotations and x_col and y_col and chart_type in ("scatter", "line", "histogram", "kde"):

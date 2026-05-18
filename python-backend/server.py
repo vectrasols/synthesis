@@ -79,19 +79,6 @@ def load_text(req: TextRequest):
         raise HTTPException(400, str(e))
 
 
-class SampleRequest(BaseModel):
-    choice: str  # iris, breast_cancer, digits, sales, weather, ecommerce
-
-@app.post("/api/data/load-sample")
-def load_sample(req: SampleRequest):
-    try:
-        df = ds.load_sample(req.choice)
-        ds.store.on_data_loaded(df, f"Sample: {req.choice}")
-        return ds.store.get_info()
-    except Exception as e:
-        raise HTTPException(400, str(e))
-
-
 @app.get("/api/data/info")
 def get_info():
     return ds.store.get_info()
@@ -139,6 +126,7 @@ class ChartRequest(BaseModel):
     opacity: float = 0.7
     use_hue: bool = False
     show_annotations: bool = False
+    show_grid: bool = True
     theme: str = "dark"
 
 @app.post("/api/chart/plot")
@@ -154,6 +142,7 @@ def get_chart(req: ChartRequest):
             opacity=req.opacity,
             use_hue=req.use_hue,
             show_annotations=req.show_annotations,
+            show_grid=req.show_grid,
             theme=req.theme,
         )
         return Response(content=chart_json, media_type="application/json")
@@ -210,6 +199,25 @@ def apply_cleaning(req: CleanRequest):
 def remove_duplicates():
     try:
         return ds.remove_duplicates()
+    except Exception as e:
+        raise HTTPException(400, str(e))
+
+
+class RollbackRequest(BaseModel):
+    step_index: int
+
+@app.get("/api/clean/history")
+def get_cleaning_history():
+    try:
+        return ds.get_cleaning_history()
+    except Exception as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/api/clean/rollback")
+def rollback_cleaning(req: RollbackRequest):
+    try:
+        return ds.rollback_cleaning(req.step_index)
     except Exception as e:
         raise HTTPException(400, str(e))
 

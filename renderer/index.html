@@ -56,35 +56,35 @@
 
       <nav class="tab-nav" id="tabNav" role="tablist">
         <button class="tab-btn active" data-tab="visualization" role="tab" id="tab-viz">
-          <span class="tab-icon">📊</span>
-          <span class="tab-label">Explore</span>
+          <span class="tab-icon">V</span>
+          <span class="tab-label">Visualize</span>
         </button>
         <button class="tab-btn" data-tab="cleaning" role="tab" id="tab-clean">
-          <span class="tab-icon">🧹</span>
+          <span class="tab-icon">P</span>
           <span class="tab-label">Prepare</span>
         </button>
         <button class="tab-btn" data-tab="model" role="tab" id="tab-model">
-          <span class="tab-icon">🤖</span>
-          <span class="tab-label">Models</span>
+          <span class="tab-icon">T</span>
+          <span class="tab-label">Train</span>
         </button>
         <button class="tab-btn" data-tab="algorithms" role="tab" id="tab-algo">
-          <span class="tab-icon">🧠</span>
-          <span class="tab-label">Methods</span>
+          <span class="tab-icon">A</span>
+          <span class="tab-label">Algorithms</span>
         </button>
       </nav>
 
       <div class="topbar-actions">
         <select id="themeSelect" class="theme-select" title="Switch theme">
-          <option value="dark">🌑 Dark</option>
-          <option value="light">☀️ Light</option>
-          <option value="solarized_light">🌅 Solarized Light</option>
-          <option value="solarized_dark">🌆 Solarized Dark</option>
-          <option value="nord">❄️ Nord</option>
-          <option value="ocean_blue">🌊 Ocean Blue</option>
-          <option value="monokai">🎨 Monokai</option>
-          <option value="dracula">🧛 Dracula</option>
-          <option value="sepia">📜 Sepia</option>
-          <option value="high_contrast">⚡ High Contrast</option>
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="solarized_light">Solarized Light</option>
+          <option value="solarized_dark">Solarized Dark</option>
+          <option value="nord">Nord</option>
+          <option value="ocean_blue">Ocean Blue</option>
+          <option value="monokai">Monokai</option>
+          <option value="dracula">Dracula</option>
+          <option value="sepia">Sepia</option>
+          <option value="high_contrast">High Contrast</option>
         </select>
       </div>
     </header>
@@ -113,7 +113,7 @@
                 <div class="card-header">Dataset</div>
                 <div class="card-body">
                   <div id="dropZone" class="drop-zone">
-                    <div class="drop-zone-icon">📂</div>
+                    <div class="drop-zone-icon">Data</div>
                     <div class="drop-zone-text">Drop a file here or</div>
                     <button class="btn btn-primary btn-sm" id="loadFileBtn">Browse File</button>
                   </div>
@@ -122,10 +122,9 @@
                     <span class="file-meta" id="fileMeta">—</span>
                   </div>
                   <div class="import-grid">
-                    <button class="btn btn-ghost btn-sm" id="pasteBtn">📋 Paste</button>
-                    <button class="btn btn-ghost btn-sm" id="manualBtn">✏️ Enter</button>
-                    <button class="btn btn-ghost btn-sm" id="urlBtn">🌐 URL</button>
-                    <button class="btn btn-ghost btn-sm" id="sampleBtn">📊 Sample</button>
+                    <button class="btn btn-ghost btn-sm" id="pasteBtn">Paste</button>
+                    <button class="btn btn-ghost btn-sm" id="manualBtn">Enter</button>
+                    <button class="btn btn-ghost btn-sm" id="urlBtn">URL</button>
                   </div>
                 </div>
               </div>
@@ -187,6 +186,10 @@
                     <input type="checkbox" id="showStats" />
                     <span>Stats Overlay</span>
                   </label>
+                  <label class="toggle-row">
+                    <input type="checkbox" id="showGrid" checked />
+                    <span>Guide Lines</span>
+                  </label>
                 </div>
               </div>
 
@@ -234,7 +237,7 @@
           <div class="content-area">
             <div id="chartContainer" class="chart-container">
               <div class="chart-placeholder" id="chartPlaceholder">
-                <div class="placeholder-icon">📊</div>
+                <div class="placeholder-icon">Chart</div>
                 <p>Load a dataset and configure the chart options to get started</p>
               </div>
               <div id="chartDiv" class="plotly-chart"></div>
@@ -252,7 +255,7 @@
             <div class="sidebar-scroll">
 
               <div class="card">
-                <div class="card-header">🔧 Missing Values</div>
+                <div class="card-header">Missing Values</div>
                 <div class="card-body form-grid">
                   <label>Method</label>
                   <select id="missingMethod" class="select">
@@ -268,7 +271,7 @@
               </div>
 
               <div class="card">
-                <div class="card-header">📍 Outliers (IQR)</div>
+                <div class="card-header">Outliers (IQR)</div>
                 <div class="card-body form-grid">
                   <label class="toggle-row">
                     <input type="checkbox" id="removeOutliers" />
@@ -281,7 +284,7 @@
               </div>
 
               <div class="card">
-                <div class="card-header">🔄 Data Type</div>
+                <div class="card-header">Data Type</div>
                 <div class="card-body form-grid">
                   <label>Column</label>
                   <select id="dtypeCol" class="select"><option value="">Select…</option></select>
@@ -295,7 +298,7 @@
               </div>
 
               <div class="card">
-                <div class="card-header">🏷️ Encoding</div>
+                <div class="card-header">Encoding</div>
                 <div class="card-body form-grid">
                   <label>Column</label>
                   <select id="encodeCol" class="select"><option value="">Select…</option></select>
@@ -310,7 +313,7 @@
               </div>
 
               <div class="card">
-                <div class="card-header">⚙️ Binarization</div>
+                <div class="card-header">Binarization</div>
                 <div class="card-body form-grid">
                   <label>Column</label>
                   <select id="binarizeCol" class="select">
@@ -323,7 +326,7 @@
               </div>
 
               <div class="card">
-                <div class="card-header">📊 Feature Scaling</div>
+                <div class="card-header">Feature Scaling</div>
                 <div class="card-body form-grid">
                   <label>Method</label>
                   <select id="scaleMethod" class="select">
@@ -335,7 +338,7 @@
               </div>
 
               <div class="card">
-                <div class="card-header">🎚️ Feature Selection</div>
+                <div class="card-header">Feature Selection</div>
                 <div class="card-body form-grid">
                   <label>Target</label>
                   <select id="selectionTarget" class="select"><option value="">Select…</option></select>
@@ -356,7 +359,7 @@
               </div>
 
               <div class="card">
-                <div class="card-header">🧬 Feature Extraction</div>
+                <div class="card-header">Feature Extraction</div>
                 <div class="card-body form-grid">
                   <label>Target</label>
                   <select id="extractionTarget" class="select"><option value="">Optional…</option></select>
@@ -373,11 +376,23 @@
               </div>
 
               <div class="card">
-                <div class="card-header">⚙️ Actions</div>
+                <div class="card-header">History</div>
+                <div class="card-body form-grid">
+                  <label>Step</label>
+                  <select id="cleanHistorySelect" class="select"><option value="">Original data</option></select>
+                  <div class="btn-row">
+                    <button class="btn btn-ghost btn-sm" id="rollbackCleanBtn">Rollback</button>
+                    <button class="btn btn-ghost btn-sm" id="refreshHistoryBtn">Refresh</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">Actions</div>
                 <div class="card-body">
-                  <button class="btn btn-ghost w-full" id="removeDupBtn">🗑️ Remove Duplicates</button>
-                  <button class="btn btn-primary w-full mt-2" id="applyCleanBtn">✨ Apply Cleaning</button>
-                  <button class="btn btn-accent w-full mt-2" id="exportCleanBtn">💾 Export Cleaned CSV</button>
+                  <button class="btn btn-ghost w-full" id="removeDupBtn">Remove Duplicates</button>
+                  <button class="btn btn-primary w-full mt-2" id="applyCleanBtn">Apply Cleaning</button>
+                  <button class="btn btn-accent w-full mt-2" id="exportCleanBtn">Export Cleaned CSV</button>
                 </div>
               </div>
 
@@ -386,17 +401,9 @@
 
           <div class="content-area">
             <div class="clean-panels">
-              <div class="card flex-1">
-                <div class="card-header">📋 Cleaning Log</div>
-                <div class="card-body">
-                  <div class="log-area" id="cleanLog">
-                    <span class="log-placeholder">Cleaning operations will appear here…</span>
-                  </div>
-                </div>
-              </div>
               <div class="card flex-2">
                 <div class="card-header flex-between">
-                  <span>👁️ Data Preview</span>
+                  <span>Data Preview</span>
                   <select id="previewSource" class="select select-sm">
                     <option value="raw">Original Data</option>
                     <option value="cleaned">Cleaned Data</option>
@@ -409,6 +416,14 @@
                       <tbody id="previewBody"></tbody>
                     </table>
                     <div class="table-placeholder" id="tablePlaceholder">Load a dataset to see preview</div>
+                  </div>
+                </div>
+              </div>
+              <div class="card flex-1">
+                <div class="card-header">Cleaning Log</div>
+                <div class="card-body">
+                  <div class="log-area" id="cleanLog">
+                    <span class="log-placeholder">Cleaning operations will appear here…</span>
                   </div>
                 </div>
               </div>
@@ -426,7 +441,7 @@
             <div class="sidebar-scroll">
 
               <div class="card">
-                <div class="card-header">🤖 Model</div>
+                <div class="card-header">Model</div>
                 <div class="card-body form-grid">
                   <label>Type</label>
                   <select id="modelType" class="select">
@@ -479,7 +494,7 @@
               </div>
 
               <div class="card">
-                <div class="card-header">⚙️ Configuration</div>
+                <div class="card-header">Configuration</div>
                 <div class="card-body form-grid">
                   <label>Test Size <span id="testSizeLabel" class="param-val">20%</span></label>
                   <input type="range" id="testSize" min="10" max="50" value="20" class="range" />
@@ -496,7 +511,7 @@
               </div>
 
               <div class="card">
-                <div class="card-header">🔧 Hyperparameters</div>
+                <div class="card-header">Hyperparameters</div>
                 <div class="card-body form-grid">
                   <label>n_estimators <span id="nestLabel" class="param-val">100</span></label>
                   <input type="range" id="nEstimators" min="10" max="500" step="10" value="100" class="range" />
@@ -509,19 +524,17 @@
                 </div>
               </div>
 
-              <button class="btn btn-accent btn-lg w-full" id="trainModelBtn">
-                <span class="btn-icon">🎯</span> Train Model
-              </button>
+              <button class="btn btn-accent btn-lg w-full" id="trainModelBtn">Train Model</button>
 
             </div>
           </aside>
 
           <div class="content-area">
             <div class="card h-full">
-              <div class="card-header">📊 Model Results</div>
+              <div class="card-header">Model Results</div>
               <div class="card-body results-body">
                 <div id="modelResults" class="model-results-placeholder">
-                  <div class="results-icon">🤖</div>
+                  <div class="results-icon">Model</div>
                   <p>Configure and train a model to see results here</p>
                 </div>
               </div>
@@ -539,61 +552,26 @@
             <div class="sidebar-scroll">
 
               <div class="card">
-                <div class="card-header">🧠 Algorithm</div>
+                <div class="card-header">Algorithm</div>
                 <div class="card-body form-grid">
                   <label>Choose</label>
                   <select id="algoSelect" class="select">
-                    <optgroup label="Machine Learning Map">
-                      <option value="ml_taxonomy">ML Taxonomy from Reference Images</option>
-                    </optgroup>
-                    <optgroup label="Search & Graph">
-                      <option value="alpha_beta">Alpha-Beta Minimax</option>
-                      <option value="astar">A* Search</option>
-                      <option value="bfs_dfs">BFS and DFS</option>
-                    </optgroup>
-                    <optgroup label="Optimization">
-                      <option value="genetic_algorithm">Genetic Algorithm</option>
-                      <option value="hill_climbing">Hill Climbing (TSP)</option>
-                    </optgroup>
-                    <optgroup label="Machine Learning">
-                      <option value="decision_tree_demo">Decision Tree Classifier</option>
-                      <option value="naive_bayes_demo">Naive Bayes Classifier</option>
-                      <option value="ensemble_methods_demo">Ensemble Methods Comparison</option>
-                      <option value="kfold">K-Fold Validation</option>
-                      <option value="kmeans_demo">K-Means Clustering</option>
-                      <option value="dbscan_demo">DBSCAN Clustering</option>
-                      <option value="pca_demo">PCA Projection</option>
-                      <option value="ica_demo">ICA Projection</option>
-                      <option value="apriori_demo">Apriori Association Rules</option>
-                      <option value="fpgrowth_demo">FP-Growth Frequent Patterns</option>
-                      <option value="zscore_anomaly_demo">Z-Score Anomaly Detection</option>
-                      <option value="isolation_forest_demo">Isolation Forest Detection</option>
-                      <option value="one_class_svm_demo">One-Class SVM Detection</option>
-                      <option value="logistic_iris">Logistic Regression (Iris)</option>
-                      <option value="logistic_breast">Logistic Regression (Breast Cancer)</option>
-                      <option value="logistic_digits">Logistic Regression (Digits)</option>
-                      <option value="onehot">One-Hot Encoding</option>
-                      <option value="svm_demo">SVM Classification</option>
-                    </optgroup>
-                    <optgroup label="Semi-Supervised">
-                      <option value="self_training_demo">Self-Training</option>
-                      <option value="co_training_demo">Co-Training</option>
-                    </optgroup>
-                    <optgroup label="Reinforcement Learning">
-                      <option value="q_learning_demo">Q-Learning</option>
-                      <option value="policy_optimization_demo">Policy Optimization</option>
-                      <option value="dynamic_programming_demo">Dynamic Programming</option>
-                    </optgroup>
-                    <optgroup label="Time Series">
-                      <option value="time_series_demo">Time Series Baselines</option>
+                    <optgroup label="User Dataset">
+                      <option value="dataset_profile">Dataset Profile</option>
+                      <option value="correlation_matrix">Correlation Matrix</option>
+                      <option value="pca_user">PCA Projection</option>
+                      <option value="kmeans_user">K-Means Clustering</option>
+                      <option value="dbscan_user">DBSCAN Clustering</option>
+                      <option value="zscore_user">Z-Score Anomaly Scan</option>
+                      <option value="isolation_user">Isolation Forest Anomaly Scan</option>
                     </optgroup>
                   </select>
                 </div>
               </div>
 
               <div class="btn-col">
-                <button class="btn btn-accent btn-lg w-full" id="runAlgoBtn">▶️ Run Algorithm</button>
-                <button class="btn btn-ghost w-full mt-2" id="clearAlgoBtn">🧼 Clear</button>
+                <button class="btn btn-accent btn-lg w-full" id="runAlgoBtn">Run Algorithm</button>
+                <button class="btn btn-ghost w-full mt-2" id="clearAlgoBtn">Clear</button>
               </div>
 
             </div>
@@ -602,17 +580,17 @@
           <div class="content-area">
             <div class="algo-panels">
               <div class="card algo-output-card">
-                <div class="card-header">📋 Output</div>
+                <div class="card-header">Output</div>
                 <div class="card-body p-0">
                   <pre id="algoOutput" class="algo-output">Run an algorithm to see output…</pre>
                 </div>
               </div>
               <div class="card flex-2">
-                <div class="card-header">📈 Visualization</div>
+                <div class="card-header">Visualization</div>
                 <div class="card-body p-0">
                   <div id="algoChartDiv" class="plotly-chart algo-chart">
                     <div class="chart-placeholder">
-                      <div class="placeholder-icon">📈</div>
+                      <div class="placeholder-icon">Plot</div>
                       <p>Algorithm visualization will appear here</p>
                     </div>
                   </div>
@@ -639,7 +617,7 @@
   <!-- URL Import Modal -->
   <div class="modal-overlay hidden" id="urlModal">
     <div class="modal">
-      <div class="modal-header">🌐 Import from URL</div>
+      <div class="modal-header">Import from URL</div>
       <div class="modal-body form-grid">
         <label>URL</label>
         <input type="url" id="urlInput" class="input" placeholder="https://example.com/data.csv" />
@@ -659,32 +637,10 @@
     </div>
   </div>
 
-  <!-- Sample Data Modal -->
-  <div class="modal-overlay hidden" id="sampleModal">
-    <div class="modal">
-      <div class="modal-header">📊 Sample Datasets</div>
-      <div class="modal-body form-grid">
-        <label>Dataset</label>
-        <select id="sampleSelect" class="select">
-          <option value="iris">Iris (Classification)</option>
-          <option value="breast_cancer">Breast Cancer (Classification)</option>
-          <option value="digits">Digits (Classification)</option>
-          <option value="sales">Random Sales Data</option>
-          <option value="weather">Random Weather Data</option>
-          <option value="ecommerce">Random E-commerce Data</option>
-        </select>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" id="sampleCancelBtn">Cancel</button>
-        <button class="btn btn-accent" id="sampleLoadBtn">Load Dataset</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Manual Entry Modal -->
   <div class="modal-overlay hidden" id="manualModal">
     <div class="modal modal-wide">
-      <div class="modal-header">✏️ Manual Data Entry</div>
+      <div class="modal-header">Manual Data Entry</div>
       <div class="modal-body">
         <p class="modal-hint">Build a table directly, or paste CSV/TSV text and parse it into editable rows:</p>
         <div class="form-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end;">
@@ -704,7 +660,7 @@
         <p class="modal-hint mt-3">Or paste CSV/TSV text below:</p>
         <textarea id="manualText" class="textarea" rows="10"
           placeholder="Name,Age,Score&#10;Alice,30,85&#10;Bob,25,92"></textarea>
-        <button class="btn btn-ghost btn-sm mt-2" id="parseManualBtn">⚙️ Parse Text</button>
+        <button class="btn btn-ghost btn-sm mt-2" id="parseManualBtn">Parse Text</button>
         <div class="manual-table-wrap" id="manualTableWrap"></div>
       </div>
       <div class="modal-footer">
@@ -717,7 +673,7 @@
   <!-- Paste Modal -->
   <div class="modal-overlay hidden" id="pasteModal">
     <div class="modal modal-wide">
-      <div class="modal-header">📋 Paste Data</div>
+      <div class="modal-header">Paste Data</div>
       <div class="modal-body">
         <p class="modal-hint">Paste data from a spreadsheet (Excel/Google Sheets) or paste CSV text:</p>
         <textarea id="pasteText" class="textarea" rows="12"

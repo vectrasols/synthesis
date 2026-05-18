@@ -12,7 +12,7 @@ const AlgoTab = (() => {
         const btn = document.getElementById('runAlgoBtn');
         if (btn) {
             btn.disabled = true;
-            btn.textContent = '⏳ Running…';
+            btn.textContent = 'Running…';
         }
         Utils.showSpinner(`Running ${name.replace(/_/g, ' ')}…`);
         Utils.setStatus(`Running: ${name}…`);
@@ -29,7 +29,7 @@ const AlgoTab = (() => {
             else {
                 Charts.clear('algoChartDiv');
             }
-            Utils.setStatus(`✅ Executed: ${name}`);
+            Utils.setStatus(`Executed: ${name}`);
         }
         catch (e) {
             const out = document.getElementById('algoOutput');
@@ -42,7 +42,7 @@ const AlgoTab = (() => {
             Utils.hideSpinner();
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '▶️ Run Algorithm';
+                btn.textContent = 'Run Algorithm';
             }
         }
     }

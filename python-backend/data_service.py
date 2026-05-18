@@ -19,7 +19,6 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.linear_model import LinearRegression, LogisticRegression, Lasso
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
-from sklearn.datasets import load_iris, load_breast_cancer, load_digits
 
 
 # ─── Global state (per-session, in-process) ────────────────────────────────────
@@ -30,6 +29,9 @@ class DataStore:
         self.df_filtered: Optional[pd.DataFrame] = None
         self.source_name: str = ""
         self.active_filters: Dict[str, str] = {}
+        self.cleaning_snapshots: List[pd.DataFrame] = []
+        self.cleaning_steps: List[Dict[str, Any]] = []
+        self.cleaning_index: int = 0
 
     def reset(self):
         self.df = None
@@ -37,6 +39,9 @@ class DataStore:
         self.df_filtered = None
         self.source_name = ""
         self.active_filters = {}
+        self.cleaning_snapshots = []
+        self.cleaning_steps = []
+        self.cleaning_index = 0
 
     def on_data_loaded(self, df: pd.DataFrame, source_name: str):
         self.df = df
@@ -44,6 +49,10 @@ class DataStore:
         self.df_filtered = df.copy()
         self.source_name = source_name
         self.active_filters = {}
+        self.cleaning_snapshots = []
+        self.cleaning_steps = []
+        self.cleaning_index = 0
+        self.push_cleaning_step("Original data", self.df_cleaned, reset=True)
 
     def get_info(self) -> Dict[str, Any]:
         if self.df is None:
@@ -61,6 +70,62 @@ class DataStore:
             "null_counts": {k: int(v) for k, v in null_counts.items()},
             "active_filters": self.active_filters,
             "filtered_rows": len(self.df_filtered) if self.df_filtered is not None else 0,
+        }
+
+    def frame_info(self, df: Optional[pd.DataFrame] = None) -> Dict[str, Any]:
+        frame = self.df_cleaned if df is None else df
+        if frame is None:
+            return {"loaded": False}
+        return {
+            "loaded": True,
+            "source": self.source_name,
+            "rows": len(frame),
+            "cols": len(frame.columns),
+            "columns": list(frame.columns),
+            "dtypes": {col: str(dtype) for col, dtype in frame.dtypes.items()},
+            "null_counts": {k: int(v) for k, v in frame.isnull().sum().to_dict().items()},
+        }
+
+    def push_cleaning_step(self, label: str, df: pd.DataFrame, reset: bool = False):
+        if reset:
+            self.cleaning_snapshots = []
+            self.cleaning_steps = []
+            self.cleaning_index = 0
+        elif self.cleaning_index < len(self.cleaning_snapshots) - 1:
+            self.cleaning_snapshots = self.cleaning_snapshots[: self.cleaning_index + 1]
+            self.cleaning_steps = self.cleaning_steps[: self.cleaning_index + 1]
+
+        self.df_cleaned = df.copy()
+        index = len(self.cleaning_snapshots)
+        self.cleaning_snapshots.append(self.df_cleaned.copy())
+        self.cleaning_steps.append({
+            "index": index,
+            "label": label,
+            "rows": len(self.df_cleaned),
+            "cols": len(self.df_cleaned.columns),
+        })
+        self.cleaning_index = index
+
+    def get_cleaning_history(self) -> Dict[str, Any]:
+        return {
+            "current": self.cleaning_index,
+            "steps": [
+                {**step, "current": step["index"] == self.cleaning_index}
+                for step in self.cleaning_steps
+            ],
+        }
+
+    def rollback_cleaning(self, step_index: int) -> Dict[str, Any]:
+        if not self.cleaning_snapshots:
+            raise ValueError("No cleaning history available")
+        if step_index < 0 or step_index >= len(self.cleaning_snapshots):
+            raise ValueError("Cleaning step not found")
+        self.cleaning_index = step_index
+        self.df_cleaned = self.cleaning_snapshots[step_index].copy()
+        return {
+            "message": f"Rolled back to: {self.cleaning_steps[step_index]['label']}",
+            "history": self.get_cleaning_history(),
+            "info": self.frame_info(self.df_cleaned),
         }
 
 
@@ -132,55 +197,6 @@ def load_from_text(text: str) -> pd.DataFrame:
         return pd.read_csv(StringIO(text))
     else:
         return pd.read_csv(StringIO(text), sep=r"\s+")
-
-
-def load_sample(choice: str) -> pd.DataFrame:
-    np.random.seed(42)
-    if choice == "iris":
-        data = load_iris()
-        df = pd.DataFrame(data.data, columns=data.feature_names)
-        df["target"] = data.target
-        return df
-    elif choice == "breast_cancer":
-        data = load_breast_cancer()
-        df = pd.DataFrame(data.data, columns=data.feature_names)
-        df["target"] = data.target
-        return df
-    elif choice == "digits":
-        data = load_digits()
-        df = pd.DataFrame(data.data, columns=[f"pixel_{i}" for i in range(data.data.shape[1])])
-        df["target"] = data.target
-        return df
-    elif choice == "sales":
-        n = 200
-        return pd.DataFrame({
-            "Date": [str(d.date()) for d in pd.date_range("2024-01-01", periods=n, freq="D")],
-            "Sales": np.random.randint(5000, 50000, n).tolist(),
-            "Profit": np.random.randint(1000, 15000, n).tolist(),
-            "Category": np.random.choice(["Electronics", "Clothing", "Home", "Sports"], n).tolist(),
-            "Region": np.random.choice(["North", "South", "East", "West"], n).tolist(),
-        })
-    elif choice == "weather":
-        n = 365
-        return pd.DataFrame({
-            "Date": [str(d.date()) for d in pd.date_range("2024-01-01", periods=n, freq="D")],
-            "Temperature": np.clip(20 + 10 * np.sin(np.arange(n) * 2 * np.pi / 365) + np.random.normal(0, 3, n), -10, 40).tolist(),
-            "Humidity": np.clip(50 + 20 * np.sin(np.arange(n) * 2 * np.pi / 365) + np.random.normal(0, 5, n), 20, 100).tolist(),
-            "Precipitation": np.random.exponential(5, n).tolist(),
-            "Wind_Speed": np.random.gamma(2, 2, n).tolist(),
-            "Condition": np.random.choice(["Sunny", "Cloudy", "Rainy", "Snowy"], n).tolist(),
-        })
-    elif choice == "ecommerce":
-        n = 300
-        return pd.DataFrame({
-            "Product_ID": list(range(1, n + 1)),
-            "Price": np.random.randint(10, 1000, n).tolist(),
-            "Units_Sold": np.random.randint(5, 500, n).tolist(),
-            "Rating": np.round(np.random.uniform(1, 5, n), 1).tolist(),
-            "Category": np.random.choice(["Electronics", "Books", "Clothing", "Home", "Sports"], n).tolist(),
-            "Customer_Age": np.random.randint(18, 75, n).tolist(),
-        })
-    raise ValueError(f"Unknown sample: {choice}")
 
 
 # ─── Filtering ──────────────────────────────────────────────────────────────────
@@ -322,12 +338,61 @@ def _distribution_fill(df: pd.DataFrame, log: List[str]) -> pd.DataFrame:
         mode_cols.append(col)
 
     if mean_cols:
-        log.append(f"✅ Filled near-normal numeric columns with mean: {', '.join(mean_cols)}")
+        log.append(f"Filled near-normal numeric columns with mean: {', '.join(mean_cols)}")
     if median_cols:
-        log.append(f"✅ Filled skewed numeric columns with median: {', '.join(median_cols)}")
+        log.append(f"Filled skewed numeric columns with median: {', '.join(median_cols)}")
     if mode_cols:
-        log.append(f"✅ Filled categorical columns with mode: {', '.join(mode_cols)}")
+        log.append(f"Filled categorical columns with mode: {', '.join(mode_cols)}")
     return df
+
+
+def _smart_numeric_conversion(series: pd.Series, column_name: str):
+    original = series.copy()
+    text = original.astype("string").str.strip()
+    non_empty = text.dropna()
+    non_empty = non_empty[non_empty != ""]
+
+    if non_empty.empty:
+        return pd.to_numeric(original, errors="coerce"), "Converted empty/non-missing values to numeric"
+
+    normalized = non_empty.str.lower().str.replace(r"[^a-z0-9.+-]", "", regex=True)
+    binary_maps = [
+        {
+            "m": 1, "male": 1, "mmale": 1,
+            "f": 0, "female": 0, "ffemale": 0,
+        },
+        {
+            "yes": 1, "y": 1, "true": 1, "t": 1,
+            "no": 0, "n": 0, "false": 0,
+        },
+    ]
+
+    for mapping in binary_maps:
+        unique_values = set(normalized.dropna().unique())
+        if unique_values and unique_values.issubset(mapping.keys()):
+            converted = normalized.map(mapping).astype("float")
+            converted = converted.reindex(series.index)
+            return converted, f"Mapped binary labels in '{column_name}' to numeric values"
+
+    converted = pd.to_numeric(text, errors="coerce")
+    invalid_mask = text.notna() & (text != "") & converted.isna()
+    if invalid_mask.any():
+        examples = sorted(set(text[invalid_mask].astype(str).head(5)))
+        raise ValueError(
+            f"Column '{column_name}' contains non-numeric values ({', '.join(examples)}). "
+            "Use Encoding for categorical data, or clean the values before numeric conversion."
+        )
+
+    return converted, f"Converted '{column_name}' to numeric"
+
+
+def _summarize_step(log: List[str]) -> str:
+    if not log:
+        return "No-op cleaning pass"
+    label = "; ".join(log[:2])
+    if len(log) > 2:
+        label += f"; +{len(log) - 2} more"
+    return label[:140]
 
 
 def _feature_scores(df: pd.DataFrame, target_col: str, method: str, k: int):
@@ -468,19 +533,19 @@ def apply_cleaning(
     if missing_method == "drop":
         before = len(df)
         df = df.dropna()
-        log.append(f"✅ Dropped {before - len(df)} rows with missing values")
+        log.append(f"Dropped {before - len(df)} rows with missing values")
     elif missing_method == "mean":
         df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
-        log.append("✅ Filled missing values with mean")
+        log.append("Filled missing values with mean")
     elif missing_method == "median":
         df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
-        log.append("✅ Filled missing values with median")
+        log.append("Filled missing values with median")
     elif missing_method == "ffill":
         df = df.ffill()
-        log.append("✅ Filled missing values with forward fill")
+        log.append("Filled missing values with forward fill")
     elif missing_method == "bfill":
         df = df.bfill()
-        log.append("✅ Filled missing values with backward fill")
+        log.append("Filled missing values with backward fill")
     elif missing_method == "distribution":
         df = _distribution_fill(df, log)
 
@@ -495,16 +560,16 @@ def apply_cleaning(
                   (df[numeric_cols] > (Q3 + outlier_threshold * IQR))).any(axis=1)]
         removed = before - len(df)
         if removed > 0:
-            log.append(f"🎯 Removed {removed} outliers (IQR method, threshold={outlier_threshold})")
+            log.append(f"Removed {removed} outliers (IQR method, threshold={outlier_threshold})")
 
     # Data type conversion
     if dtype_column and dtype_column in df.columns:
         if dtype_convert == "numeric":
-            df[dtype_column] = pd.to_numeric(df[dtype_column], errors="coerce")
-            log.append(f"🔄 Converted '{dtype_column}' to numeric")
+            df[dtype_column], conversion_log = _smart_numeric_conversion(df[dtype_column], dtype_column)
+            log.append(conversion_log)
         elif dtype_convert == "categorical":
             df[dtype_column] = df[dtype_column].astype("category")
-            log.append(f"🔄 Converted '{dtype_column}' to categorical")
+            log.append(f"Converted '{dtype_column}' to categorical")
 
     # Binarization
     if binarize_column:
@@ -515,21 +580,21 @@ def apply_cleaning(
         if target_cols:
             transformer = Binarizer(threshold=binarize_threshold)
             df[target_cols] = transformer.fit_transform(df[target_cols])
-            log.append(f"⚙️ Binarized {len(target_cols)} numeric column(s) at threshold {binarize_threshold:g}")
+            log.append(f"Binarized {len(target_cols)} numeric column(s) at threshold {binarize_threshold:g}")
 
     # Encoding
     if encode_column and encode_column in df.columns and encode_method:
         source = df[encode_column].astype(str).fillna("Unknown")
         if encode_method == "label":
             df[encode_column] = LabelEncoder().fit_transform(source)
-            log.append(f"🏷️ Label encoded '{encode_column}'")
+            log.append(f"Label encoded '{encode_column}'")
         elif encode_method == "factorize":
             df[encode_column] = pd.factorize(source)[0]
-            log.append(f"🏷️ Factorized '{encode_column}'")
+            log.append(f"Factorized '{encode_column}'")
         elif encode_method == "onehot":
             encoded = pd.get_dummies(source, prefix=encode_column, dtype=int)
             df = pd.concat([df.drop(columns=[encode_column]), encoded], axis=1)
-            log.append(f"🏷️ One-hot encoded '{encode_column}' into {len(encoded.columns)} columns")
+            log.append(f"One-hot encoded '{encode_column}' into {len(encoded.columns)} columns")
 
     # Scaling
     if scale_method:
@@ -539,7 +604,7 @@ def apply_cleaning(
         else:
             scaler = MinMaxScaler()
         df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
-        log.append(f"📊 Scaled numeric columns using {'Standard' if scale_method == 'standard' else 'MinMax'} Scaler")
+        log.append(f"Scaled numeric columns using {'Standard' if scale_method == 'standard' else 'MinMax'} Scaler")
 
     # Feature selection
     if selection_method and selection_target and selection_target in df.columns:
@@ -548,20 +613,27 @@ def apply_cleaning(
         keep_cols = selected_cols + ([selection_target] if selection_target not in selected_cols else [])
         df = df[keep_cols]
         score_text = ", ".join(f"{col}={score:.4g}" for col, score in selected[:5])
-        log.append(f"🎚️ Selected top {len(selected_cols)} features using {selection_method.replace('_', ' ')}: {score_text}")
+        log.append(f"Selected top {len(selected_cols)} features using {selection_method.replace('_', ' ')}: {score_text}")
 
     # Feature extraction
     if extraction_method:
         df, metadata = _apply_feature_extraction(df, extraction_method, extraction_target, extraction_components)
         details = ", ".join(f"{k}: {v}" for k, v in metadata.items())
         suffix = f" ({details})" if details else ""
-        log.append(f"🧬 Extracted {extraction_method.upper()} features: {df.shape[1]} column(s){suffix}")
+        log.append(f"Extracted {extraction_method.upper()} features: {df.shape[1]} column(s){suffix}")
 
-    store.df_cleaned = df
+    if log:
+        store.push_cleaning_step(_summarize_step(log), df)
+    else:
+        store.df_cleaned = df
+        log.append("No cleaning changes selected")
+
     return {
         "log": log,
         "rows": len(df),
         "cols": len(df.columns),
+        "history": store.get_cleaning_history(),
+        "info": store.frame_info(df),
     }
 
 
@@ -569,9 +641,26 @@ def remove_duplicates() -> Dict[str, Any]:
     if store.df_cleaned is None:
         raise ValueError("No data loaded")
     before = len(store.df_cleaned)
-    store.df_cleaned = store.df_cleaned.drop_duplicates()
-    removed = before - len(store.df_cleaned)
-    return {"removed": removed, "rows": len(store.df_cleaned)}
+    df = store.df_cleaned.drop_duplicates()
+    removed = before - len(df)
+    if removed:
+        store.push_cleaning_step(f"Removed {removed} duplicate rows", df)
+    else:
+        store.df_cleaned = df
+    return {
+        "removed": removed,
+        "rows": len(store.df_cleaned),
+        "history": store.get_cleaning_history(),
+        "info": store.frame_info(store.df_cleaned),
+    }
+
+
+def get_cleaning_history() -> Dict[str, Any]:
+    return store.get_cleaning_history()
+
+
+def rollback_cleaning(step_index: int) -> Dict[str, Any]:
+    return store.rollback_cleaning(step_index)
 
 
 def export_cleaned_csv() -> bytes:
