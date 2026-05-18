@@ -68,6 +68,7 @@ class DataStore:
             "columns": list(df.columns),
             "dtypes": dtypes,
             "null_counts": {k: int(v) for k, v in null_counts.items()},
+            "unique_counts": self._unique_counts(df),
             "active_filters": self.active_filters,
             "filtered_rows": len(self.df_filtered) if self.df_filtered is not None else 0,
         }
@@ -84,7 +85,11 @@ class DataStore:
             "columns": list(frame.columns),
             "dtypes": {col: str(dtype) for col, dtype in frame.dtypes.items()},
             "null_counts": {k: int(v) for k, v in frame.isnull().sum().to_dict().items()},
+            "unique_counts": self._unique_counts(frame),
         }
+
+    def _unique_counts(self, df: pd.DataFrame) -> Dict[str, int]:
+        return {col: int(df[col].nunique(dropna=True)) for col in df.columns}
 
     def push_cleaning_step(self, label: str, df: pd.DataFrame, reset: bool = False):
         if reset:

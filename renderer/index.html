@@ -50,7 +50,10 @@
     <header class="topbar">
       <div class="topbar-brand">
         <img class="topbar-logo" src="../assets/icon.png" alt="" />
-        <span class="topbar-title">Synthesis</span>
+        <span class="topbar-product">
+          <span class="topbar-title">Synthesis</span>
+          <span class="topbar-subtitle">Data Analysis Suite</span>
+        </span>
         <span class="topbar-version" id="appVersion">v1.0.0</span>
       </div>
 
@@ -586,7 +589,13 @@
                 </div>
               </div>
               <div class="card flex-2">
-                <div class="card-header">Visualization</div>
+                <div class="card-header">
+                  <span>Visualization</span>
+                  <label class="header-toggle" title="Toggle chart guide lines">
+                    <input type="checkbox" id="algoShowGrid" checked />
+                    <span>Guide Lines</span>
+                  </label>
+                </div>
                 <div class="card-body p-0">
                   <div id="algoChartDiv" class="plotly-chart algo-chart">
                     <div class="chart-placeholder">

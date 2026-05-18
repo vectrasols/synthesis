@@ -127,16 +127,35 @@ def _safe_neighbors(n_neighbors: int, n_samples: int) -> int:
     return max(1, min(int(n_neighbors), max(1, int(n_samples) - 1)))
 
 
-def _regression_metrics(y_test, y_pred) -> Dict[str, float]:
+def _json_safe(value):
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, np.ndarray):
+        return _json_safe(value.tolist())
+    if isinstance(value, (np.integer,)):
+        return int(value)
+    if isinstance(value, (np.floating, float)):
+        as_float = float(value)
+        return round(as_float, 4) if math.isfinite(as_float) else "N/A"
+    return value
+
+
+def _regression_metrics(y_test, y_pred) -> Dict[str, Any]:
     mse = float(mean_squared_error(y_test, y_pred))
+    r2 = "N/A"
+    if len(y_test) >= 2:
+        score = float(r2_score(y_test, y_pred))
+        r2 = round(score, 4) if math.isfinite(score) else "N/A"
     return {
         "MSE": round(mse, 4),
         "RMSE": round(float(np.sqrt(mse)), 4),
-        "R²": round(float(r2_score(y_test, y_pred)), 4),
+        "R²": r2,
     }
 
 
-def _classification_metrics(y_test, y_pred) -> Dict[str, float]:
+def _classification_metrics(y_test, y_pred) -> Dict[str, Any]:
     return {"Accuracy": round(float(accuracy_score(y_test, y_pred)), 4)}
 
 
@@ -259,7 +278,7 @@ def train_model(
                 "Nu": 0.08,
             }
 
-        return results
+        return _json_safe(results)
 
     for_regression = model_type in REGRESSION_TRAINING_MODELS
     y = _prepared_target(df[target], for_regression)
@@ -447,7 +466,7 @@ def train_model(
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
-    return results
+    return _json_safe(results)
 
 
 # ─── Algorithms Lab ─────────────────────────────────────────────────────────────

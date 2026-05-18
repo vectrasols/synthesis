@@ -518,6 +518,7 @@ const VizTab = (() => {
     // Notify other tabs
     CleanTab?.onDataLoaded(info);
     ModelTab?.onDataLoaded(info);
+    AlgoTab?.onDataLoaded(info);
 
     Charts.refreshChart();
   }

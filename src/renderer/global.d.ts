@@ -5,6 +5,8 @@ interface DataInfo {
   cols: number;
   columns: string[];
   dtypes?: Record<string, string>;
+  null_counts?: Record<string, number>;
+  unique_counts?: Record<string, number>;
 }
 
 interface ElectronApi {

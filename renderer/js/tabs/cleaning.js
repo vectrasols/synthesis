@@ -204,6 +204,7 @@ const CleanTab = (() => {
                 renderHistory(res.history);
             refreshPreview();
             ModelTab?.onDataLoaded(res.info);
+            AlgoTab?.onDataLoaded(res.info);
             Utils.toast(`Removed ${res.removed} duplicates`, 'success');
         }
         catch (e) {
@@ -248,6 +249,7 @@ const CleanTab = (() => {
                 renderHistory(res.history);
             refreshPreview();
             ModelTab?.onDataLoaded(res.info);
+            AlgoTab?.onDataLoaded(res.info);
             Utils.toast('Cleaning applied!', 'success');
         }
         catch (e) {
@@ -311,6 +313,7 @@ const CleanTab = (() => {
             appendLog(res.message || 'Rolled back cleaning step', 'warn');
             refreshPreview();
             ModelTab?.onDataLoaded(res.info);
+            AlgoTab?.onDataLoaded(res.info);
             Utils.toast('Cleaning rolled back', 'success');
         }
         catch (e) {
