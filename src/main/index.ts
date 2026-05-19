@@ -153,6 +153,7 @@ function createWindow() {
     minHeight: 720,
     backgroundColor: '#1e1e23',
     show: false,
+    title: 'Synthesis - Data Analysis Suite',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

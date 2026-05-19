@@ -24,6 +24,7 @@ const AlgoTab = (() => {
     document.getElementById('runAlgoBtn')?.addEventListener('click', runAlgorithm);
     document.getElementById('clearAlgoBtn')?.addEventListener('click', clearOutput);
     document.getElementById('algoSelect')?.addEventListener('change', updateRunButton);
+    document.getElementById('algoShowGrid')?.addEventListener('change', applyGuideLines);
     updateAlgorithmAvailability();
   }
 
@@ -131,7 +132,7 @@ const AlgoTab = (() => {
       if (out) out.textContent = res.output || '(no output)';
 
       if (res.chart) {
-        Charts.render('algoChartDiv', res.chart);
+        Promise.resolve(Charts.render('algoChartDiv', res.chart)).then(applyGuideLines);
       } else {
         Charts.clear('algoChartDiv');
       }
@@ -153,6 +154,21 @@ const AlgoTab = (() => {
     const out = document.getElementById('algoOutput');
     if (out) out.textContent = 'Run an algorithm to see output...';
     Charts.clear('algoChartDiv');
+  }
+
+  function applyGuideLines() {
+    const div = document.getElementById('algoChartDiv');
+    if (!div?.data) return;
+    const showGrid = document.getElementById('algoShowGrid')?.checked ?? true;
+    Plotly.relayout(div, {
+      'xaxis.showgrid': showGrid,
+      'xaxis.zeroline': showGrid,
+      'yaxis.showgrid': showGrid,
+      'yaxis.zeroline': showGrid,
+      'scene.xaxis.showgrid': showGrid,
+      'scene.yaxis.showgrid': showGrid,
+      'scene.zaxis.showgrid': showGrid,
+    });
   }
 
   return { init, onDataLoaded };

@@ -5,13 +5,13 @@ const Charts = (() => {
         const el = document.getElementById(divId);
         if (!el)
             return;
-        // Hide placeholder
+        el.querySelectorAll('.chart-placeholder').forEach(node => node.remove());
         const ph = el.previousElementSibling;
         if (ph?.classList.contains('chart-placeholder'))
             ph.style.display = 'none';
         try {
             const fig = typeof figureJson === 'string' ? JSON.parse(figureJson) : figureJson;
-            Plotly.react(el, fig.data || [], fig.layout || {}, {
+            return Plotly.react(el, fig.data || [], fig.layout || {}, {
                 responsive: true,
                 displayModeBar: true,
                 displaylogo: false,
