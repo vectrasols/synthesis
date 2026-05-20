@@ -23,15 +23,15 @@ jobs:
           - name: Windows
             os: windows-latest
             script: build:win
-            artifact: windows-installer
+            artifact: windows-installer-1.0.1
             paths: |
               dist/*.exe
               dist/*.blockmap
               dist/latest*.yml
           - name: macOS
-            os: macos-13
+            os: macos-15-intel
             script: build:mac
-            artifact: macos-installer
+            artifact: macos-installer-1.0.1
             paths: |
               dist/*.dmg
               dist/*.zip
@@ -40,7 +40,7 @@ jobs:
           - name: Linux
             os: ubuntu-latest
             script: build:linux
-            artifact: linux-installer
+            artifact: linux-installer-1.0.1
             paths: |
               dist/*.AppImage
               dist/*.deb
