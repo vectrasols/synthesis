@@ -25,7 +25,10 @@
     "visualization",
     "electron"
   ],
-  "author": "Synthesis",
+  "author": {
+    "name": "VectraSols",
+    "email": "info@vectrasols.com"
+  },
   "license": "MIT",
   "devDependencies": {
     "electron": "^42.1.0",
@@ -89,6 +92,7 @@
       ],
       "icon": "assets/icon.png",
       "category": "Science",
+      "maintainer": "VectraSols <info@vectrasols.com>",
       "artifactName": "${productName}-${version}.${ext}"
     },
     "publish": {
