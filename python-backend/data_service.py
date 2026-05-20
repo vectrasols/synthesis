@@ -16,6 +16,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, Binarizer, Label
 from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif, VarianceThreshold, RFE
 from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.datasets import load_iris, load_breast_cancer, load_digits
 from sklearn.linear_model import LinearRegression, LogisticRegression, Lasso
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
@@ -202,6 +203,92 @@ def load_from_text(text: str) -> pd.DataFrame:
         return pd.read_csv(StringIO(text))
     else:
         return pd.read_csv(StringIO(text), sep=r"\s+")
+
+
+def load_sample(name: str) -> pd.DataFrame:
+    """Return deterministic sample datasets used by demos and smoke tests."""
+    key = name.strip().lower().replace("-", "_")
+
+    if key == "iris":
+        dataset = load_iris(as_frame=True)
+        df = dataset.frame.copy()
+        df["target"] = dataset.target
+        return df
+
+    if key == "breast_cancer":
+        dataset = load_breast_cancer(as_frame=True)
+        df = dataset.frame.copy()
+        df["target"] = dataset.target
+        return df
+
+    if key == "digits":
+        dataset = load_digits(as_frame=True)
+        df = dataset.frame.copy()
+        df["target"] = dataset.target
+        return df
+
+    rng = np.random.default_rng(42)
+
+    if key == "sales":
+        rows = 160
+        marketing = rng.normal(5200, 1400, rows).clip(800, 9500)
+        visits = rng.normal(26000, 7200, rows).clip(2500, 52000)
+        discount = rng.uniform(0, 0.35, rows)
+        support_score = rng.normal(82, 8, rows).clip(45, 100)
+        sales = (
+            18000
+            + marketing * 2.4
+            + visits * 0.72
+            + support_score * 180
+            - discount * 9000
+            + rng.normal(0, 3500, rows)
+        )
+        return pd.DataFrame({
+            "Marketing Spend": marketing.round(2),
+            "Website Visits": visits.round(0).astype(int),
+            "Discount Rate": discount.round(3),
+            "Support Score": support_score.round(1),
+            "Sales": sales.round(2),
+        })
+
+    if key == "weather":
+        rows = 90
+        days = pd.date_range("2026-01-01", periods=rows, freq="D")
+        temperature = rng.normal(22, 7, rows)
+        humidity = rng.normal(58, 15, rows).clip(20, 98)
+        wind_speed = rng.gamma(2.2, 4.0, rows)
+        rainfall = rng.gamma(1.4, 2.8, rows)
+        conditions = np.array(["Sunny", "Cloudy", "Rain", "Storm", "Fog"])
+        condition = rng.choice(conditions, rows, p=[0.36, 0.28, 0.22, 0.07, 0.07])
+        df = pd.DataFrame({
+            "Date": days.astype(str),
+            "Temperature": temperature.round(1),
+            "Humidity": humidity.round(1),
+            "Wind Speed": wind_speed.round(1),
+            "Rainfall": rainfall.round(1),
+            "Condition": condition,
+        })
+        df.loc[df.index[::17], "Humidity"] = np.nan
+        df.loc[df.index[::23], "Condition"] = np.nan
+        return df
+
+    if key == "ecommerce":
+        rows = 140
+        categories = np.array(["Books", "Electronics", "Home", "Beauty", "Sports"])
+        channels = np.array(["Organic", "Ads", "Email", "Referral"])
+        units = rng.integers(1, 9, rows)
+        unit_price = rng.lognormal(mean=3.7, sigma=0.45, size=rows)
+        return pd.DataFrame({
+            "Order ID": [f"ORD-{10000 + i}" for i in range(rows)],
+            "Category": rng.choice(categories, rows),
+            "Channel": rng.choice(channels, rows),
+            "Units": units,
+            "Unit Price": unit_price.round(2),
+            "Revenue": (units * unit_price).round(2),
+            "Returned": rng.choice(["Yes", "No"], rows, p=[0.12, 0.88]),
+        })
+
+    raise ValueError(f"Unknown sample dataset: {name}")
 
 
 # ─── Filtering ──────────────────────────────────────────────────────────────────
