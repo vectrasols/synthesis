@@ -148,6 +148,7 @@ def test_charts():
             opacity=0.75,
             use_hue=True,
             show_annotations=True,
+            show_grid=True,
             theme="dark",
         )
         assert_chart_json(raw)
