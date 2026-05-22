@@ -231,7 +231,7 @@ def _fetch_url_bytes(url: str):
 
     def read(current_url: str):
         request = Request(current_url, headers={
-            "User-Agent": "synthesis-suite/1.0 (+https://github.com/vectrasols/synthesis-suite)",
+            "User-Agent": "Synthesis Suite/1.0 (+https://github.com/vectrasols/synthesis-suite)",
             "Accept": "text/csv,application/json,application/vnd.ms-excel,application/octet-stream,*/*",
         })
         with opener.open(request, timeout=45) as response:

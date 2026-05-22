@@ -16,4 +16,4 @@ Do not publish exploit details until a fix or mitigation is available.
 
 ## Local Data
 
-synthesis-suite is designed for local desktop analysis. Uploaded/imported datasets are processed by a local FastAPI backend spawned by Electron. Review any URL-import source before loading remote data.
+Synthesis Suite is designed for local desktop analysis. Uploaded/imported datasets are processed by a local FastAPI backend spawned by Electron. Review any URL-import source before loading remote data.

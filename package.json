@@ -1,7 +1,7 @@
 {
   "name": "synthesis-suite",
   "version": "1.0.2",
-  "description": "synthesis-suite - Data Analysis & Machine Learning Workbench",
+  "description": "Synthesis Suite - Data Analysis & Machine Learning Workbench",
   "main": "main/index.js",
   "scripts": {
     "build:ts": "tsc -p tsconfig.json",
@@ -45,8 +45,8 @@
   },
   "build": {
     "appId": "com.synthesis.suite",
-    "productName": "synthesis-suite",
-    "copyright": "Copyright © 2026 synthesis-suite",
+    "productName": "Synthesis Suite",
+    "copyright": "Copyright © 2026 Synthesis Suite",
     "directories": {
       "output": "dist",
       "buildResources": "assets"

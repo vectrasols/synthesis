@@ -113,7 +113,7 @@ function resolveDevPython() {
 // ─── Spawn Python backend ─────────────────────────────────────────────────────
 async function startPythonBackend() {
   backendPort = await getFreePort();
-  console.log(`[synthesis-suite] Starting Python backend on port ${backendPort}`);
+  console.log(`[Synthesis Suite] Starting Python backend on port ${backendPort}`);
 
   let pythonExe, serverScript;
 
@@ -137,7 +137,7 @@ async function startPythonBackend() {
   };
 
     if (pythonExe) {
-    console.log(`[synthesis-suite] Python executable: ${pythonExe}`);
+    console.log(`[Synthesis Suite] Python executable: ${pythonExe}`);
     pythonProcess = spawn(pythonExe, [serverScript, ...args], spawnOptions);
   } else {
     pythonProcess = spawn(serverScript, args, spawnOptions);
@@ -149,7 +149,7 @@ async function startPythonBackend() {
 
   // Wait until server is ready
   await waitForServer(backendPort, 30000);
-  console.log(`[synthesis-suite] Backend ready on port ${backendPort}`);
+  console.log(`[Synthesis Suite] Backend ready on port ${backendPort}`);
 }
 
 // Poll /api/health until server responds
@@ -183,7 +183,7 @@ function createWindow() {
     minHeight: 720,
     backgroundColor: '#1e1e23',
     show: false,
-    title: 'synthesis-suite - Data Analysis Suite',
+    title: 'Synthesis Suite - Data Analysis Suite',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -225,9 +225,9 @@ function createTray() {
 
   const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
   tray = new Tray(icon);
-  tray.setToolTip('synthesis-suite');
+  tray.setToolTip('Synthesis Suite');
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: 'Open synthesis-suite', click: () => { mainWindow?.show(); mainWindow?.focus(); } },
+    { label: 'Open Synthesis Suite', click: () => { mainWindow?.show(); mainWindow?.focus(); } },
     { type: 'separator' },
     { label: 'Quit', click: () => app.quit() },
   ]));

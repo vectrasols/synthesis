@@ -23,6 +23,6 @@ const args = [
 try {
   process.exitCode = runPython(args);
 } catch (error) {
-  console.error(`[synthesis-suite] Backend build failed: ${error.message}`);
+  console.error(`[Synthesis Suite] Backend build failed: ${error.message}`);
   process.exitCode = 1;
 }

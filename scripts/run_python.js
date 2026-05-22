@@ -95,7 +95,7 @@ if (require.main === module) {
   try {
     process.exitCode = runPython(process.argv.slice(2));
   } catch (error) {
-    console.error(`[synthesis-suite] ${error.message}`);
+    console.error(`[Synthesis Suite] ${error.message}`);
     process.exitCode = 1;
   }
 }

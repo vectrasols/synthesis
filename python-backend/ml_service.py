@@ -490,7 +490,7 @@ def run_algorithm(name: str) -> Dict[str, Any]:
         "isolation_user":      _run_user_isolation_forest,
     }
     if name not in funcs:
-        raise ValueError("This algorithm is not available because synthesis-suite only runs algorithms on your loaded dataset.")
+        raise ValueError("This algorithm is not available because Synthesis Suite only runs algorithms on your loaded dataset.")
     return funcs[name]()
 
 

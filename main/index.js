@@ -101,7 +101,7 @@ function resolveDevPython() {
 // ─── Spawn Python backend ─────────────────────────────────────────────────────
 async function startPythonBackend() {
     backendPort = await getFreePort();
-    console.log(`[synthesis-suite] Starting Python backend on port ${backendPort}`);
+    console.log(`[Synthesis Suite] Starting Python backend on port ${backendPort}`);
     let pythonExe, serverScript;
     if (isDev) {
         // Development: prefer project/local Python environments, with Conda still optional.
@@ -122,7 +122,7 @@ async function startPythonBackend() {
         env: { ...process.env },
     };
     if (pythonExe) {
-        console.log(`[synthesis-suite] Python executable: ${pythonExe}`);
+        console.log(`[Synthesis Suite] Python executable: ${pythonExe}`);
         pythonProcess = spawn(pythonExe, [serverScript, ...args], spawnOptions);
     }
     else {
@@ -133,7 +133,7 @@ async function startPythonBackend() {
     pythonProcess.on('exit', (code) => console.log(`[Python] exited with code ${code}`));
     // Wait until server is ready
     await waitForServer(backendPort, 30000);
-    console.log(`[synthesis-suite] Backend ready on port ${backendPort}`);
+    console.log(`[Synthesis Suite] Backend ready on port ${backendPort}`);
 }
 // Poll /api/health until server responds
 function waitForServer(port, timeoutMs) {
@@ -166,7 +166,7 @@ function createWindow() {
         minHeight: 720,
         backgroundColor: '#1e1e23',
         show: false,
-        title: 'synthesis-suite - Data Analysis Suite',
+        title: 'Synthesis Suite - Data Analysis Suite',
         titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -208,9 +208,9 @@ function createTray() {
         return;
     const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
     tray = new Tray(icon);
-    tray.setToolTip('synthesis-suite');
+    tray.setToolTip('Synthesis Suite');
     tray.setContextMenu(Menu.buildFromTemplate([
-        { label: 'Open synthesis-suite', click: () => { mainWindow?.show(); mainWindow?.focus(); } },
+        { label: 'Open Synthesis Suite', click: () => { mainWindow?.show(); mainWindow?.focus(); } },
         { type: 'separator' },
         { label: 'Quit', click: () => app.quit() },
     ]));
