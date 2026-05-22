@@ -136,7 +136,7 @@ async function startPythonBackend() {
     env: { ...process.env },
   };
 
-  if (pythonExe) {
+    if (pythonExe) {
     console.log(`[Synthesis] Python executable: ${pythonExe}`);
     pythonProcess = spawn(pythonExe, [serverScript, ...args], spawnOptions);
   } else {

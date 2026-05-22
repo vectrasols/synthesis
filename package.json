@@ -1,7 +1,7 @@
 {
   "name": "synthesis",
   "version": "1.0.2",
-  "description": "Synthesis - Data Analysis Suite",
+  "description": "Synthesis - Data Analysis & Machine Learning Workbench",
   "main": "main/index.js",
   "scripts": {
     "build:ts": "tsc -p tsconfig.json",
@@ -44,7 +44,7 @@
     "electron-updater": "^6.3.4"
   },
   "build": {
-    "appId": "com.synthesis.app",
+    "appId": "com.synthesis.suite",
     "productName": "Synthesis",
     "copyright": "Copyright © 2026 Synthesis",
     "directories": {
