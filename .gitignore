@@ -22,6 +22,7 @@ latest*.yml
 .cache/
 builder-debug.yml
 builder-effective-config.yaml
+main/payload-baseline.json
 
 # Python backend artifacts
 __pycache__/

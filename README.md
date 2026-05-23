@@ -24,11 +24,19 @@ Installers are produced from tagged GitHub releases:
 Create a release by pushing a version tag:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.2.0
+git push origin v1.2.0
 ```
 
 The release workflow builds each installer on its matching GitHub runner. This matters because the Python backend binary is OS-specific. Building Windows, macOS, and Linux installers from one Linux machine is not reliable for this project.
+
+Releases also publish payload update assets next to the installers:
+
+- `payload-manifest-<platform>-<arch>.json`
+- `payload-renderer-<platform>-<arch>-<version>.tgz`
+- `payload-backend-<platform>-<arch>-<version>.tgz`
+
+Users still install only the normal platform installer. Packaged apps use these payload assets for smaller renderer/backend updates, while `electron-updater` remains available for full launcher/installer updates.
 
 ## Requirements
 

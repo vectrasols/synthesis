@@ -22,6 +22,12 @@ interface ElectronApi {
   onDownloadProgress: (cb: (progress: { version?: string; percent?: number; transferred?: number; total?: number; speed?: number }) => void) => void;
   onUpdateInstalling: (cb: (info: { version?: string }) => void) => void;
   installUpdate: () => Promise<{ ok: boolean; message?: string }>;
+  onPayloadUpdateAvailable: (cb: (info: { version: string; packageCount?: number; totalSize?: number }) => void) => void;
+  onPayloadDownloadProgress: (cb: (progress: { version?: string; packageName?: string; packageIndex?: number; packageCount?: number; percent?: number | null; transferred?: number; total?: number }) => void) => void;
+  onPayloadUpdateReady: (cb: (info: { version: string; packageCount?: number }) => void) => void;
+  onPayloadUpdateError: (cb: (error: { message?: string } | string) => void) => void;
+  onPayloadUpdateInstalling: (cb: (info: { version?: string }) => void) => void;
+  installPayloadUpdate: () => Promise<{ ok: boolean; message?: string }>;
   platform: string;
   getVersion: () => Promise<string>;
 }

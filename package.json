@@ -1,6 +1,6 @@
 {
   "name": "synthesis-suite",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Synthesis Suite - Data Analysis & Machine Learning Workbench",
   "main": "main/index.js",
   "scripts": {
@@ -10,13 +10,14 @@
     "setup:backend": "node scripts/run_python.js -m pip install -r python-backend/requirements.txt",
     "smoke:backend": "node scripts/run_python.js scripts/smoke_backend.py",
     "smoke:backend:quick": "node scripts/run_python.js scripts/smoke_backend.py --quick",
-    "check:js": "npm run build:ts && node --check main/index.js && node --check main/preload.js && node --check main/updater.js && node --check renderer/js/app.js && node --check renderer/js/api.js && node --check renderer/js/charts.js && node --check renderer/js/utils.js && node --check renderer/js/tabs/visualization.js && node --check renderer/js/tabs/cleaning.js && node --check renderer/js/tabs/model-training.js && node --check renderer/js/tabs/algorithms.js",
+    "check:js": "npm run build:ts && node --check main/index.js && node --check main/preload.js && node --check main/updater.js && node --check main/payload-updater.js && node --check renderer/js/app.js && node --check renderer/js/api.js && node --check renderer/js/charts.js && node --check renderer/js/utils.js && node --check renderer/js/tabs/visualization.js && node --check renderer/js/tabs/cleaning.js && node --check renderer/js/tabs/model-training.js && node --check renderer/js/tabs/algorithms.js",
     "build:backend": "node scripts/build_backend.js",
-    "build": "npm run build:ts && npm run build:backend && electron-builder",
-    "build:win": "npm run build:ts && npm run build:backend && electron-builder --win",
-    "build:mac": "npm run build:ts && npm run build:backend && electron-builder --mac",
-    "build:linux": "npm run build:ts && npm run build:backend && electron-builder --linux",
-    "pack": "npm run build:ts && npm run build:backend && electron-builder --dir",
+    "build:payloads": "node scripts/build_payloads.js",
+    "build": "npm run build:ts && npm run build:backend && npm run build:payloads && electron-builder",
+    "build:win": "npm run build:ts && npm run build:backend && npm run build:payloads && electron-builder --win",
+    "build:mac": "npm run build:ts && npm run build:backend && npm run build:payloads && electron-builder --mac",
+    "build:linux": "npm run build:ts && npm run build:backend && npm run build:payloads && electron-builder --linux",
+    "pack": "npm run build:ts && npm run build:backend && npm run build:payloads && electron-builder --dir",
     "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [

@@ -48,7 +48,7 @@
     }
     // ── App version ────────────────────────────────────────────────────────────
     if (window.electronAPI) {
-        const ver = await window.electronAPI.getVersion().catch(() => '1.1.0');
+        const ver = await window.electronAPI.getVersion().catch(() => '1.2.0');
         const el = document.getElementById('appVersion');
         if (el)
             el.textContent = `v${ver}`;
@@ -90,8 +90,10 @@
     // ── Auto-update notifications ──────────────────────────────────────────────
     if (window.electronAPI) {
         let pendingUpdateVersion = '';
+        let pendingPayloadVersion = '';
         let updateReadyToInstall = false;
         let updateBannerDismissed = false;
+        let updateAction = null;
         const banner = document.getElementById('updateBanner');
         const text = document.getElementById('updateBannerText');
         const installBtn = document.getElementById('updateInstallBtn');
@@ -117,6 +119,7 @@
         window.electronAPI.onUpdateAvailable(info => {
             pendingUpdateVersion = info.version;
             updateReadyToInstall = false;
+            updateAction = null;
             updateBannerDismissed = false;
             setUpdateBanner(`Update v${info.version} is available. Downloading...`, {
                 tone: 'downloading',
@@ -140,6 +143,7 @@
         window.electronAPI.onUpdateDownloaded(info => {
             pendingUpdateVersion = info.version;
             updateReadyToInstall = true;
+            updateAction = 'installer';
             updateBannerDismissed = false;
             setUpdateBanner(`Update v${info.version} is ready to install.`, {
                 tone: 'ready',
@@ -159,13 +163,96 @@
             const details = typeof error === 'string' ? error : error?.message;
             const canRetryInstall = typeof error === 'string' ? updateReadyToInstall : Boolean(error?.canRetryInstall);
             updateReadyToInstall = canRetryInstall;
+            updateAction = canRetryInstall ? 'installer' : null;
             updateBannerDismissed = false;
             setUpdateBanner(`Update failed: ${details || 'Unknown error'}`, {
                 tone: 'error',
                 canInstall: canRetryInstall,
             });
         });
+        window.electronAPI.onPayloadUpdateAvailable(info => {
+            if (updateAction === 'installer' && updateReadyToInstall)
+                return;
+            pendingPayloadVersion = info.version;
+            updateAction = null;
+            updateBannerDismissed = false;
+            setUpdateBanner(`Content update v${info.version} is available. Downloading...`, {
+                tone: 'downloading',
+                canInstall: false,
+                installLabel: 'Downloading',
+                forceShow: true,
+            });
+        });
+        window.electronAPI.onPayloadDownloadProgress(progress => {
+            if (updateAction === 'installer' && updateReadyToInstall)
+                return;
+            if (progress.version)
+                pendingPayloadVersion = progress.version;
+            const version = pendingPayloadVersion ? ` v${pendingPayloadVersion}` : '';
+            const pkg = progress.packageName ? ` ${progress.packageName}` : '';
+            const count = progress.packageIndex && progress.packageCount
+                ? ` (${progress.packageIndex}/${progress.packageCount})`
+                : '';
+            const suffix = Number.isFinite(progress.percent) ? ` ${progress.percent}%` : '';
+            setUpdateBanner(`Downloading content update${version}${count}${pkg}${suffix}...`, {
+                tone: 'downloading',
+                canInstall: false,
+                installLabel: 'Downloading',
+            });
+        });
+        window.electronAPI.onPayloadUpdateReady(info => {
+            if (updateAction === 'installer' && updateReadyToInstall)
+                return;
+            pendingPayloadVersion = info.version;
+            updateAction = 'payload';
+            updateBannerDismissed = false;
+            setUpdateBanner(`Content update v${info.version} is ready. Restart to apply.`, {
+                tone: 'ready',
+                canInstall: true,
+                installLabel: 'Restart to Apply',
+            });
+        });
+        window.electronAPI.onPayloadUpdateInstalling(info => {
+            const version = info.version || pendingPayloadVersion;
+            const suffix = version ? ` v${version}` : '';
+            setUpdateBanner(`Applying content update${suffix}...`, {
+                tone: 'installing',
+                canInstall: false,
+                installLabel: 'Restarting...',
+            });
+        });
+        window.electronAPI.onPayloadUpdateError(error => {
+            if (updateAction === 'installer' && updateReadyToInstall)
+                return;
+            const details = typeof error === 'string' ? error : error?.message;
+            updateAction = null;
+            updateBannerDismissed = false;
+            setUpdateBanner(`Content update failed: ${details || 'Unknown error'}`, {
+                tone: 'error',
+                canInstall: false,
+            });
+        });
         installBtn?.addEventListener('click', async () => {
+            if (updateAction === 'payload') {
+                const version = pendingPayloadVersion ? ` v${pendingPayloadVersion}` : '';
+                setUpdateBanner(`Applying content update${version}...`, {
+                    tone: 'installing',
+                    canInstall: false,
+                    installLabel: 'Restarting...',
+                });
+                const result = await window.electronAPI.installPayloadUpdate().catch(err => ({
+                    ok: false,
+                    message: err?.message || String(err),
+                }));
+                if (!result?.ok) {
+                    setUpdateBanner(`Content update failed: ${result?.message || 'Restart did not start'}`, {
+                        tone: 'error',
+                        canInstall: true,
+                        installLabel: 'Restart to Apply',
+                    });
+                }
+                return;
+            }
             if (!updateReadyToInstall) {
                 const version = pendingUpdateVersion ? ` v${pendingUpdateVersion}` : '';
                 setUpdateBanner(`Update${version} is still downloading...`, {
@@ -189,6 +276,7 @@
                 setUpdateBanner(`Update failed: ${result?.message || 'Install did not start'}`, {
                     tone: 'error',
                     canInstall: updateReadyToInstall,
+                    installLabel: 'Install & Restart',
                 });
             }
         });

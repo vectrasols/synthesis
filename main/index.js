@@ -8,6 +8,7 @@ const fs = require('fs');
 const net = require('net');
 const { spawn, execFileSync } = require('child_process');
 const { setupUpdater } = require('./updater');
+const { applyPendingPayloadUpdate, getActiveBackendDir, getActiveRendererRoot, setupPayloadUpdater, } = require('./payload-updater');
 // ─── Globals ───────────────────────────────────────────────────────────────────
 let mainWindow = null;
 let tray = null;
@@ -112,7 +113,8 @@ async function startPythonBackend() {
         // Production: use the bundled backend binary built on the target OS.
         const resourcePath = process.resourcesPath;
         const binaryName = process.platform === 'win32' ? 'server.exe' : 'server';
-        serverScript = path.join(resourcePath, 'python-backend', binaryName);
+        const activeBackendDir = getActiveBackendDir();
+        serverScript = path.join(activeBackendDir || path.join(resourcePath, 'python-backend'), binaryName);
         pythonExe = null; // We'll run the binary directly
     }
     const args = ['--port', String(backendPort)];
@@ -176,8 +178,10 @@ function createWindow() {
         },
         icon: path.join(__dirname, '..', 'assets', 'icon.png'),
     });
-    // Load the renderer
-    mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+    // Load the active renderer payload, falling back to the bundled renderer.
+    const activeRendererRoot = !isDev ? getActiveRendererRoot() : null;
+    const rendererRoot = activeRendererRoot || path.join(__dirname, '..');
+    mainWindow.loadFile(path.join(rendererRoot, 'renderer', 'index.html'));
     // Show window when ready
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
@@ -198,6 +202,12 @@ function createWindow() {
         }
         catch (e) {
             console.warn('Updater setup skipped:', e.message);
+        }
+        try {
+            setupPayloadUpdater(mainWindow);
+        }
+        catch (e) {
+            console.warn('Payload updater setup skipped:', e.message);
         }
     }
 }
@@ -262,6 +272,14 @@ function registerIpcHandlers() {
 app.whenReady().then(async () => {
     registerIpcHandlers();
     Menu.setApplicationMenu(null);
+    if (!isDev) {
+        try {
+            await applyPendingPayloadUpdate();
+        }
+        catch (err) {
+            console.error('Failed to apply pending payload update:', err.message);
+        }
+    }
     try {
         await startPythonBackend();
     }
