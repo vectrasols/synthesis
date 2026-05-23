@@ -48,7 +48,7 @@
 
   // ── App version ────────────────────────────────────────────────────────────
   if (window.electronAPI) {
-    const ver = await window.electronAPI.getVersion().catch(() => '1.0.0');
+    const ver = await window.electronAPI.getVersion().catch(() => '1.1.0');
     const el = document.getElementById('appVersion');
     if (el) el.textContent = `v${ver}`;
   }
@@ -92,23 +92,128 @@
 
   // ── Auto-update notifications ──────────────────────────────────────────────
   if (window.electronAPI) {
+    let pendingUpdateVersion = '';
+    let updateReadyToInstall = false;
+    let updateBannerDismissed = false;
+    const banner = document.getElementById('updateBanner');
+    const text = document.getElementById('updateBannerText');
+    const installBtn = document.getElementById('updateInstallBtn') as HTMLButtonElement | null;
+
+    type UpdateBannerTone = 'downloading' | 'ready' | 'error' | 'installing';
+    type UpdateBannerOptions = {
+      tone?: UpdateBannerTone;
+      canInstall?: boolean;
+      installLabel?: string;
+      forceShow?: boolean;
+    };
+
+    function setUpdateBanner(message: string, options: UpdateBannerOptions = {}) {
+      const tone = options.tone || 'downloading';
+      const canInstall = Boolean(options.canInstall);
+      if (banner) {
+        banner.classList.remove('hidden', 'is-downloading', 'is-ready', 'is-error', 'is-installing');
+        if (updateBannerDismissed && tone === 'downloading' && !options.forceShow) {
+          banner.classList.add('hidden');
+        }
+        banner.classList.add(`is-${tone}`);
+      }
+      if (text) text.textContent = message;
+      if (installBtn) {
+        installBtn.disabled = !canInstall;
+        installBtn.textContent = options.installLabel || 'Install & Restart';
+      }
+    }
+
+    if (installBtn) installBtn.disabled = true;
+
     window.electronAPI.onUpdateAvailable(info => {
-      const banner = document.getElementById('updateBanner');
-      const text = document.getElementById('updateBannerText');
-      if (banner) banner.classList.remove('hidden');
-      if (text) text.textContent = `Update v${info.version} is available — downloading…`;
+      pendingUpdateVersion = info.version;
+      updateReadyToInstall = false;
+      updateBannerDismissed = false;
+      setUpdateBanner(`Update v${info.version} is available. Downloading...`, {
+        tone: 'downloading',
+        canInstall: false,
+        installLabel: 'Downloading',
+        forceShow: true,
+      });
+    });
+
+    window.electronAPI.onDownloadProgress(progress => {
+      if (progress.version) pendingUpdateVersion = progress.version;
+      const percent = Number.isFinite(progress.percent) ? Math.max(0, Math.min(100, progress.percent)) : null;
+      const version = pendingUpdateVersion ? ` v${pendingUpdateVersion}` : '';
+      const suffix = percent === null ? '' : ` ${percent}%`;
+      setUpdateBanner(`Downloading update${version}${suffix}...`, {
+        tone: 'downloading',
+        canInstall: false,
+        installLabel: 'Downloading',
+      });
     });
 
     window.electronAPI.onUpdateDownloaded(info => {
-      const text = document.getElementById('updateBannerText');
-      if (text) text.textContent = `v${info.version} ready to install. Restart to update.`;
+      pendingUpdateVersion = info.version;
+      updateReadyToInstall = true;
+      updateBannerDismissed = false;
+      setUpdateBanner(`Update v${info.version} is ready to install.`, {
+        tone: 'ready',
+        canInstall: true,
+      });
     });
 
-    document.getElementById('updateInstallBtn')?.addEventListener('click', () => {
-      window.electronAPI.installUpdate();
+    window.electronAPI.onUpdateInstalling(info => {
+      const version = info.version || pendingUpdateVersion;
+      const suffix = version ? ` v${version}` : '';
+      setUpdateBanner(`Installing update${suffix}...`, {
+        tone: 'installing',
+        canInstall: false,
+        installLabel: 'Installing...',
+      });
+    });
+
+    window.electronAPI.onUpdateError(error => {
+      const details = typeof error === 'string' ? error : error?.message;
+      const canRetryInstall = typeof error === 'string' ? updateReadyToInstall : Boolean(error?.canRetryInstall);
+      updateReadyToInstall = canRetryInstall;
+      updateBannerDismissed = false;
+      setUpdateBanner(`Update failed: ${details || 'Unknown error'}`, {
+        tone: 'error',
+        canInstall: canRetryInstall,
+      });
+    });
+
+    installBtn?.addEventListener('click', async () => {
+      if (!updateReadyToInstall) {
+        const version = pendingUpdateVersion ? ` v${pendingUpdateVersion}` : '';
+        setUpdateBanner(`Update${version} is still downloading...`, {
+          tone: 'downloading',
+          canInstall: false,
+          installLabel: 'Downloading',
+        });
+        return;
+      }
+
+      const version = pendingUpdateVersion ? ` v${pendingUpdateVersion}` : '';
+      setUpdateBanner(`Installing update${version}...`, {
+        tone: 'installing',
+        canInstall: false,
+        installLabel: 'Installing...',
+      });
+
+      const result = await window.electronAPI.installUpdate().catch(err => ({
+        ok: false,
+        message: err?.message || String(err),
+      }));
+
+      if (!result?.ok) {
+        setUpdateBanner(`Update failed: ${result?.message || 'Install did not start'}`, {
+          tone: 'error',
+          canInstall: updateReadyToInstall,
+        });
+      }
     });
 
     document.getElementById('updateDismissBtn')?.addEventListener('click', () => {
+      updateBannerDismissed = true;
       document.getElementById('updateBanner')?.classList.add('hidden');
     });
   }

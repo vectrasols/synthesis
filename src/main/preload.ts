@@ -24,9 +24,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onUpdateDownloaded: (cb) => ipcRenderer.on('update-downloaded', (_, info) => cb(info)),
   onUpdateError: (cb) => ipcRenderer.on('update-error', (_, err) => cb(err)),
   onDownloadProgress: (cb) => ipcRenderer.on('download-progress', (_, progress) => cb(progress)),
+  onUpdateInstalling: (cb) => ipcRenderer.on('update-installing', (_, info) => cb(info)),
 
   // Trigger install & restart after update downloaded
-  installUpdate: () => ipcRenderer.send('install-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
 
   // Platform info
   platform: process.platform,

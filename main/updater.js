@@ -9,6 +9,7 @@ const updater = createUpdater();
 updater.logger = log;
 updater.logger.transports.file.level = 'info';
 // Disable auto-install on quit for manual control
+updater.autoDownload = true;
 updater.autoInstallOnAppQuit = false;
 function createUpdater() {
     if (process.platform !== 'linux')
@@ -44,13 +45,22 @@ function readLinuxDistro() {
     }
 }
 function setupUpdater(mainWindow) {
+    let updateDownloaded = false;
+    let latestVersion = null;
+    function send(channel, payload = undefined) {
+        if (!mainWindow || mainWindow.isDestroyed())
+            return;
+        mainWindow.webContents.send(channel, payload);
+    }
     // Forward updater events to renderer
     updater.on('checking-for-update', () => {
         log.info('Checking for update...');
     });
     updater.on('update-available', (info) => {
+        updateDownloaded = false;
+        latestVersion = info.version;
         log.info('Update available:', info.version);
-        mainWindow.webContents.send('update-available', {
+        send('update-available', {
             version: info.version,
             releaseDate: info.releaseDate,
             releaseNotes: info.releaseNotes,
@@ -61,10 +71,15 @@ function setupUpdater(mainWindow) {
     });
     updater.on('error', (err) => {
         log.error('Update error:', err.message);
-        mainWindow.webContents.send('update-error', err.message);
+        send('update-error', {
+            message: err.message || String(err),
+            version: latestVersion,
+            canRetryInstall: updateDownloaded,
+        });
     });
     updater.on('download-progress', (progress) => {
-        mainWindow.webContents.send('download-progress', {
+        send('download-progress', {
+            version: latestVersion,
             percent: Math.round(progress.percent),
             transferred: progress.transferred,
             total: progress.total,
@@ -72,18 +87,44 @@ function setupUpdater(mainWindow) {
         });
     });
     updater.on('update-downloaded', (info) => {
+        updateDownloaded = true;
+        latestVersion = info.version;
         log.info('Update downloaded:', info.version);
-        mainWindow.webContents.send('update-downloaded', {
+        send('update-downloaded', {
             version: info.version,
         });
     });
     // Handle install request from renderer
-    ipcMain.on('install-update', () => {
-        updater.quitAndInstall(false, true);
+    ipcMain.removeHandler('install-update');
+    ipcMain.handle('install-update', () => {
+        if (!updateDownloaded) {
+            const message = 'Update is still downloading. Install will be available when the download finishes.';
+            log.warn(message);
+            return { ok: false, message };
+        }
+        send('update-installing', { version: latestVersion });
+        try {
+            updater.quitAndInstall(false, true);
+            return { ok: true };
+        }
+        catch (err) {
+            const message = err?.message || String(err);
+            log.error('Update install failed:', message);
+            send('update-error', {
+                message,
+                version: latestVersion,
+                canRetryInstall: true,
+            });
+            return { ok: false, message };
+        }
     });
     // Check for updates (delay 3 seconds after app loads)
     setTimeout(() => {
-        updater.checkForUpdates().catch((err) => {
+        updater.checkForUpdates().then((result) => {
+            result?.downloadPromise?.catch((err) => {
+                log.warn('Update download failed:', err.message);
+            });
+        }).catch((err) => {
             log.warn('Update check failed (this is normal in dev):', err.message);
         });
     }, 3000);

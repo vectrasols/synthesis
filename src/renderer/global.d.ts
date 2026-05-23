@@ -18,9 +18,10 @@ interface ElectronApi {
   writeFile: (filePath: string, data: ArrayBuffer) => Promise<boolean>;
   onUpdateAvailable: (cb: (info: { version: string; releaseDate?: string; releaseNotes?: string }) => void) => void;
   onUpdateDownloaded: (cb: (info: { version: string }) => void) => void;
-  onUpdateError: (cb: (error: string) => void) => void;
-  onDownloadProgress: (cb: (progress: unknown) => void) => void;
-  installUpdate: () => void;
+  onUpdateError: (cb: (error: { message?: string; version?: string; canRetryInstall?: boolean } | string) => void) => void;
+  onDownloadProgress: (cb: (progress: { version?: string; percent?: number; transferred?: number; total?: number; speed?: number }) => void) => void;
+  onUpdateInstalling: (cb: (info: { version?: string }) => void) => void;
+  installUpdate: () => Promise<{ ok: boolean; message?: string }>;
   platform: string;
   getVersion: () => Promise<string>;
 }

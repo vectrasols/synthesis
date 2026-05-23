@@ -676,6 +676,22 @@ body {
   background: color-mix(in srgb, var(--success) 10%, var(--chrome));
   box-shadow: var(--shadow);
 }
+.update-banner.is-downloading {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, var(--chrome));
+}
+.update-banner.is-ready {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--line));
+  background: color-mix(in srgb, var(--success) 10%, var(--chrome));
+}
+.update-banner.is-error {
+  border-color: color-mix(in srgb, var(--danger) 48%, var(--line));
+  background: color-mix(in srgb, var(--danger) 10%, var(--chrome));
+}
+.update-banner.is-installing {
+  border-color: color-mix(in srgb, var(--warning) 48%, var(--line));
+  background: color-mix(in srgb, var(--warning) 10%, var(--chrome));
+}
 .update-banner span { flex: 1; color: var(--text); }
 .op-spinner, .modal-overlay {
   position: fixed; inset: 0; z-index: 600;
