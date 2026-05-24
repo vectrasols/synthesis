@@ -6,10 +6,9 @@ Synthesis Suite is an open-source desktop application for data scientists, analy
 
 <div align="center">
 
-![Synthesis Suite Main Interface](https://via.placeholder.com/800x600?text=Synthesis+Suite+Screenshot)
+![Synthesis Suite Main Interface](assets/screenshot_visualize.png)
 
-*[Add screenshot: src/renderer/index.html main page]*
-
+![Synthesis Suite Prepare Interface](assets/screenshot_prepare.png)
 </div>
 
 ### Key Features
