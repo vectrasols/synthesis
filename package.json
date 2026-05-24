@@ -1,6 +1,6 @@
 {
   "name": "synthesis-suite",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Synthesis Suite - Data Analysis & Machine Learning Workbench",
   "main": "main/index.js",
   "scripts": {
@@ -71,7 +71,7 @@
         "nsis"
       ],
       "icon": "assets/icon.ico",
-      "artifactName": "Synthesis-Suite-Setup-${version}.${ext}"
+      "artifactName": "Synthesis-Suite.${ext}"
     },
     "nsis": {
       "oneClick": true,
@@ -87,7 +87,7 @@
       ],
       "icon": "assets/icon.icns",
       "category": "public.app-category.developer-tools",
-      "artifactName": "Synthesis-Suite-${version}-mac.${ext}"
+      "artifactName": "Synthesis-Suite.${ext}"
     },
     "linux": {
       "target": [
@@ -98,7 +98,7 @@
       "icon": "assets/icon.png",
       "category": "Science",
       "maintainer": "Vectrasols <info@vectrasols.com>",
-      "artifactName": "Synthesis-Suite-${version}.${ext}"
+      "artifactName": "Synthesis-Suite.${ext}"
     },
     "publish": {
       "provider": "github",
