@@ -126,7 +126,17 @@ npm run build:backend
 
 For all-platform releases, use the GitHub Actions release workflow instead of trying to cross-compile from Linux. Push a `v*.*.*` tag and GitHub will build Windows, macOS, and Linux artifacts in parallel.
 
-Unsigned macOS and Windows builds may show operating-system trust warnings. Code signing and notarization can be added later with repository secrets.
+The Windows and macOS builds are unsigned. Operating-system security warnings will appear when installing or opening the app.
+
+On Windows, Microsoft Defender SmartScreen will warn that the installer is from an unknown publisher. Download Synthesis Suite only from the official GitHub release, then bypass the warning by clicking **More info** and **Run anyway**.
+
+On macOS, Gatekeeper will block the unsigned app the first time it opens. To trust it:
+
+1. Double-click the app to trigger the warning block.
+2. Immediately go to Apple menu > System Settings > Privacy & Security.
+3. Scroll down to the Security section.
+4. Find the message that the app was blocked and click **Open Anyway**.
+5. Enter the Mac login password to permanently trust the binary.
 
 ## Project Structure
 

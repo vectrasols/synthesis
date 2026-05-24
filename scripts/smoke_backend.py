@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -55,6 +56,18 @@ def test_data_loading():
     df = data.load_from_text("name,score\nAda,10\nGrace,12")
     if list(df.columns) != ["name", "score"] or len(df) != 2:
         raise AssertionError("CSV text parsing failed")
+
+
+def test_url_loading():
+    tmp_path = Path(tempfile.gettempdir()) / "synthesis_suite_smoke_url_import.csv"
+    tmp_path.write_text("name,score\nAda,10\nGrace,12\n", encoding="utf-8")
+    try:
+        df = data.load_from_url(tmp_path.as_uri(), "csv")
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+    if list(df.columns) != ["name", "score"] or len(df) != 2:
+        raise AssertionError("URL CSV import failed")
 
 
 def test_cleaning_features():
@@ -257,6 +270,7 @@ def main():
     args = parser.parse_args()
 
     check("data loading", test_data_loading)
+    check("URL loading", test_url_loading)
     check("cleaning features", test_cleaning_features)
     check("charts", test_charts)
     if not args.quick:

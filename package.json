@@ -1,6 +1,6 @@
 {
   "name": "synthesis-suite",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Synthesis Suite - Data Analysis & Machine Learning Workbench",
   "main": "main/index.js",
   "scripts": {
@@ -27,7 +27,7 @@
     "electron"
   ],
   "author": {
-    "name": "VectraSols",
+    "name": "Vectrasols",
     "email": "info@vectrasols.com"
   },
   "repository": {
@@ -97,7 +97,7 @@
       ],
       "icon": "assets/icon.png",
       "category": "Science",
-      "maintainer": "VectraSols <info@vectrasols.com>",
+      "maintainer": "Vectrasols <info@vectrasols.com>",
       "artifactName": "${productName}-${version}.${ext}"
     },
     "publish": {

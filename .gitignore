@@ -35,6 +35,7 @@ python-backend/.mypy_cache/
 python-backend/dist/
 python-backend/build/
 python-backend/*.spec
+!python-backend/server.spec
 
 # Virtual environments
 .venv/

@@ -7,23 +7,13 @@ const { runPython } = require('./run_python');
 const args = [
   '-m',
   'PyInstaller',
+  '--noconfirm',
   '--clean',
-  '--onefile',
-  '--name',
-  'server',
-  '--hidden-import',
-  'data_service',
-  '--hidden-import',
-  'chart_service',
-  '--hidden-import',
-  'ml_service',
   '--distpath',
   path.join('python-backend', 'dist'),
   '--workpath',
   path.join('python-backend', 'build'),
-  '--specpath',
-  'python-backend',
-  path.join('python-backend', 'server.py'),
+  path.join('python-backend', 'server.spec'),
 ];
 
 try {
